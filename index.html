@@ -1,88 +1,211 @@
-‏<!doctype html>
-‏<html lang="fa" dir="rtl">
-‏<head>
-‏<meta charset="utf-8"/>
-‏<meta name="viewport" content="width=device-width,initial-scale=1"/>
-‏<title>حسابدار صوتی</title>
-‏<meta name="theme-color" content="#0e7c86"/>
-‏<style>
-‏html,body{margin:0;padding:0;font-family:Tahoma,system-ui;background:#f7fafb;color:#111}
-‏header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0e7c86;color:#fff}
-‏h1{margin:0;font-size:18px}
-‏#pill{font-size:12px;background:#075a62;padding:4px 8px;border-radius:999px}
-‏main{padding:12px 16px}
-‏#chat{background:#fff;border:1px solid #e6eef2;border-radius:12px;padding:12px;margin-bottom:12px}
-‏#log{max-height:38vh;overflow:auto;padding-bottom:8px;display:flex;flex-direction:column}
-‏.msg{margin:8px 0;padding:10px;border-radius:8px;max-width:88%}
-‏.msg.user{background:#e9f7ff;align-self:flex-end}
-‏.msg.bot{background:#f1f5f9;align-self:flex-start}
-‏#inputRow{display:flex;gap:8px;margin-top:8px}
-‏.mic{padding:10px 12px;border:none;border-radius:8px;background:#0e7c86;color:#fff}
-‏.mic.alt{background:#933}
-‏.ghost{background:#fff;border:1px solid #cfd8dc;color:#0e7c86;border-radius:8px;padding:10px 12px}
-‏#quickRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-‏.chip{border:1px solid #cfd8dc;background:#fff;border-radius:20px;padding:6px 10px}
-‏.card{background:#fff;border:1px solid #e6eef2;border-radius:12px;padding:12px;margin:8px 0;display:flex;justify-content:space-between}
-‏#cards{display:grid;grid-template-columns:1fr;gap:8px}
-‏@media(min-width:560px){#cards{grid-template-columns:repeat(3,1fr)}}
-‏#txList{list-style:none;padding:0;margin:0}
-‏#txList li{background:#fff;border:1px solid #e6eef2;border-radius:10px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between}
-‏.amount.negative{color:#b20000}
-‏.amount.positive{color:#0a7f2e}
-‏small{color:#6b7280}
-‏.big{font-size:18px}
-‏.center{display:flex;justify-content:center;gap:8px}
-‏</style>
-‏</head>
-‏<body>
-‏<header>
-‏  <h1>حسابدار صوتی</h1>
-‏  <div id="pill">محلی</div>
-‏</header>
-‏<main>
-‏  <section id="chat">
-‏    <div id="log" aria-live="polite"></div>
-‏    <div id="inputRow">
-‏      <button id="micBtn" class="mic">🎤 شروع</button>
-‏      <button id="stopBtn" class="mic alt" disabled>■ توقف</button>
-‏      <button id="exportBtn" class="ghost">خروجی JSON</button>
-‏    </div>
-‏    <div id="quickRow">
-‏      <button class="chip" data-cmd="summary-today">خلاصه امروز</button>
-‏      <button class="chip" data-cmd="show-categories">سرفصل‌ها</button>
-‏      <button class="chip" data-cmd="show-checks">چک‌های باز</button>
-‏      <button class="chip" data-cmd="show-installments">اقساط</button>
-‏      <button class="chip" data-cmd="report-recent">ریز</button>
-‏      <button class="chip" data-cmd="report-networth">موجودی خالص</button>
-‏    </div>
-‏  </section>
+‏<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حسابدار صوتی</title>
+<style>
+body {
+  font-family: "Vazirmatn", sans-serif;
+  background: #f4f6f7;
+  margin: 0; padding: 0;
+}
+header {
+  background: #00796b;
+  color: white;
+  text-align: center;
+  padding: 15px;
+  font-size: 22px;
+  font-weight: bold;
+}
+section { padding: 15px; }
+button, .chip {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 5px;
+  font-size: 15px;
+  background: #e0f2f1;
+  color: #004d40;
+}
+button:hover, .chip:hover { background: #b2dfdb; cursor: pointer; }
+.card {
+  background: white;
+  margin-top: 10px;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #00796b;
+}
+</style>
+</head>
+<body>
 
-‏  <section id="summary">
-‏    <h2>خلاصه سریع</h2>
-‏    <div id="cards">
-‏      <div class="card"><span>موجودی خالص</span><strong id="netWorth">—</strong></div>
-‏      <div class="card"><span>خرج امروز</span><strong id="todayExpense">—</strong></div>
-‏      <div class="card"><span>واریزی امروز</span><strong id="todayIncome">—</strong></div>
-‏    </div>
-‏  </section>
+<header>💬 حسابدار صوتی</header>
 
-‏  <section id="list">
-‏    <h2 id="listTitle">تراکنش‌های اخیر</h2>
-‏    <ul id="txList"></ul>
-‏  </section>
-‏</main>
+<section id="actions">
+  <button class="chip" data-cmd="start">🎙️ شروع</button>
+  <button class="chip" data-cmd="stop">⏹ توقف</button>
+  <button class="chip" data-cmd="setup">⚙️ تنظیم اولیه</button>
+  <button class="chip" data-cmd="json">📤 خروجی JSON</button>
+</section>
 
-‏<script>
-/* ساده‌ترین نسخه برای ذخیره محلی و تشخیص گفتار */
-‏const Storage={get(){return JSON.parse(localStorage.getItem('va-db')||'[]')},set(x){localStorage.setItem('va-db',JSON.stringify(x))}};
-‏function addTx(note,amount){const d=Storage.get();d.push({note,amount,date:new Date().toISOString()});Storage.set(d);showSummary();}
-‏function showSummary(){const list=Storage.get();let inc=0,exp=0;list.forEach(x=>{if(x.amount>0)inc+=x.amount;else exp+=Math.abs(x.amount)});document.getElementById('todayIncome').textContent=inc.toLocaleString('fa-IR')+' ت';document.getElementById('todayExpense').textContent=exp.toLocaleString('fa-IR')+' ت';document.getElementById('netWorth').textContent=(inc-exp).toLocaleString('fa-IR')+' ت';const ul=document.getElementById('txList');ul.innerHTML='';list.slice(-10).reverse().forEach(x=>{const li=document.createElement('li');li.textContent=x.note+' ('+x.amount+')';ul.appendChild(li)});}
-‏function say(t){if('speechSynthesis'in window){const u=new SpeechSynthesisUtterance(t);u.lang='fa-IR';speechSynthesis.speak(u);}}
-‏function hear(){const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){alert('تشخیص گفتار پشتیبانی نمی‌شود');return;}const r=new R();r.lang='fa-IR';r.onresult=e=>{const t=e.results[0][0].transcript;document.getElementById('log').innerHTML+='<div class="msg user">'+t+'</div>';parse(t);};r.start();}
-‏function parse(t){if(/خرج/.test(t)){const n=parseInt(t.replace(/\D/g,''))||0;addTx(t,-n);say('خرج ثبت شد');}else if(/گرفتم|واریز/.test(t)){const n=parseInt(t.replace(/\D/g,''))||0;addTx(t,n);say('دریافت ثبت شد');}else if(/خلاصه/.test(t)){showSummary();say('گزارش به‌روز شد');}else{say('نفهمیدم، بگو خرج کردم یا گرفتم.');}}
-‏document.getElementById('micBtn').onclick=hear;
-‏document.getElementById('exportBtn').onclick=()=>{const blob=new Blob([localStorage.getItem('va-db')||'[]'],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='va-backup.json';a.click();};
-‏showSummary();
-‏</script>
-‏</body>
-‏</html>
+<section class="card">
+  <h3>خلاصه سریع</h3>
+  <p>موجودی خالص: <span id="netWorth" class="value">۰</span></p>
+  <p>درآمد امروز: <span id="todayIncome" class="value">۰</span></p>
+  <p>خرج امروز: <span id="todayExpense" class="value">۰</span></p>
+</section>
+
+<section class="card">
+  <h3>تراکنش‌های اخیر</h3>
+  <ul id="transactions"></ul>
+</section>
+
+<script>
+// --- ذخیره داده‌ها در مرورگر ---
+const Storage = {
+  key: "va-data",
+  get() { return JSON.parse(localStorage.getItem(this.key) || "[]"); },
+  set(v) { localStorage.setItem(this.key, JSON.stringify(v)); }
+};
+
+// --- داده‌های پایه (دارایی / بدهی / چک / قسط) ---
+function getBase() { return JSON.parse(localStorage.getItem('va-base') || '{"assets":0,"debts":0,"checks":0,"installments":0}'); }
+function setBase(b) { localStorage.setItem('va-base', JSON.stringify(b)); }
+
+// --- صدا و گفتار ---
+const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec;
+
+function startListening() {
+  if (!R) return alert("مرورگر از گفتار پشتیبانی نمی‌کند.");
+  rec = new R();
+  rec.lang = 'fa-IR';
+  rec.start();
+  rec.onresult = e => handleSpeech(e.results[0][0].transcript);
+  rec.onerror = e => console.log(e);
+}
+
+function stopListening() {
+  if (rec) rec.stop();
+}
+
+// --- پردازش گفتار ---
+function handleSpeech(t) {
+  say(`ثبت شد: ${t}`);
+  const num = extractNumber(t);
+  if (t.includes("خرج")) addTransaction(-num, t);
+  else if (t.includes("گرفتم") || t.includes("واریز")) addTransaction(num, t);
+  else if (t.includes("تنظیم اولیه")) setupWizard();
+  else say("دستور نامشخص بود.");
+  showSummary();
+}
+
+// --- استخراج عدد از متن فارسی ---
+function extractNumber(t) {
+  if (!t) return 0;
+  t = t.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+  const n = parseInt(t.replace(/[^\d]/g, '')) || 0;
+  return n;
+}
+
+// --- افزودن تراکنش ---
+function addTransaction(amount, desc) {
+  const data = Storage.get();
+  data.push({ time: Date.now(), amount, desc });
+  Storage.set(data);
+  renderTransactions();
+}
+
+// --- نمایش تراکنش‌ها ---
+function renderTransactions() {
+  const list = Storage.get().slice(-10).reverse();
+  const ul = document.getElementById("transactions");
+  ul.innerHTML = list.map(x => `<li>${x.desc} → ${x.amount.toLocaleString('fa-IR')} ت</li>`).join("");
+}
+
+// --- محاسبه خلاصه ---
+function showSummary() {
+  const base = getBase();
+  const list = Storage.get();
+  let inc = 0, exp = 0;
+  list.forEach(x => {
+    if (x.amount > 0) inc += x.amount;
+    else exp += Math.abs(x.amount);
+  });
+  const net = (base.assets - base.debts) + (inc - exp);
+
+  document.getElementById('todayIncome').textContent = inc.toLocaleString('fa-IR');
+  document.getElementById('todayExpense').textContent = exp.toLocaleString('fa-IR');
+  document.getElementById('netWorth').textContent = net.toLocaleString('fa-IR');
+}
+
+// --- تنظیم اولیه ---
+async function setupWizard() {
+  say("بریم برای تنظیم اولیه.");
+  const assets = await SpeechAsk("دارایی کل چقدره؟");
+  const debts = await SpeechAsk("جمع بدهی‌ها چقدره؟");
+  const checks = await SpeechAsk("جمع چک‌های باز چقدره؟");
+  const ins = await SpeechAsk("جمع اقساط ماهانه چقدره؟");
+  setBase({
+    assets: extractNumber(assets),
+    debts: extractNumber(debts),
+    checks: extractNumber(checks),
+    installments: extractNumber(ins)
+  });
+  say("ذخیره شد و خلاصه به‌روز شد.");
+  showSummary();
+}
+
+// --- گفتار خروجی (پاسخ صوتی) ---
+function say(txt) {
+  const u = new SpeechSynthesisUtterance(txt);
+  u.lang = "fa-IR";
+  speechSynthesis.speak(u);
+}
+
+// --- پرسش گفتاری ---
+function SpeechAsk(prompt) {
+  return new Promise(res => {
+    say(prompt);
+    if (!R) return res(prompt("پاسخ را بنویس:"));
+    const r = new R();
+    r.lang = 'fa-IR';
+    r.onresult = e => { res(e.results[0][0].transcript); r.stop(); };
+    r.onerror = () => res("");
+    r.start();
+  });
+}
+
+// --- رویداد دکمه‌ها ---
+document.querySelectorAll(".chip").forEach(btn => {
+  btn.onclick = () => {
+    const key = btn.dataset.cmd;
+    if (key === "start") startListening();
+    if (key === "stop") stopListening();
+    if (key === "setup") setupWizard();
+    if (key === "json") exportJSON();
+  };
+});
+
+// --- خروجی JSON ---
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(Storage.get(), null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "transactions.json";
+  a.click();
+}
+
+// شروع اولیه
+renderTransactions();
+showSummary();
+</script>
+</body>
+</html>
