@@ -1,211 +1,404 @@
-‏<!DOCTYPE html>
+<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>حسابدار صوتی</title>
+<meta name="theme-color" content="#0e7c86"/>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
 <style>
-body {
-  font-family: "Vazirmatn", sans-serif;
-  background: #f4f6f7;
-  margin: 0; padding: 0;
-}
-header {
-  background: #00796b;
-  color: white;
-  text-align: center;
-  padding: 15px;
-  font-size: 22px;
-  font-weight: bold;
-}
-section { padding: 15px; }
-button, .chip {
-  border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin: 5px;
-  font-size: 15px;
-  background: #e0f2f1;
-  color: #004d40;
-}
-button:hover, .chip:hover { background: #b2dfdb; cursor: pointer; }
-.card {
-  background: white;
-  margin-top: 10px;
-  border-radius: 12px;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.value {
-  font-size: 20px;
-  font-weight: bold;
-  color: #00796b;
-}
+:root{--teal:#0e7c86;--soft:#f4f7f9;--card:#fff;--line:#e6eef2}
+*{box-sizing:border-box} body{margin:0;background:var(--soft);font-family:Tahoma,system-ui}
+header{background:var(--teal);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+h1{margin:0;font-size:18px} .sub{opacity:.9;font-size:12px}
+main{padding:12px 16px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-size:14px;background:#e0f2f1;color:#064a50}
+.btn.primary{background:#0e7c86;color:#fff} .btn.danger{background:#933;color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+.grid{display:grid;gap:8px} .g3{grid-template-columns:repeat(3,1fr)}
+.val{font-weight:700;color:#0a7f2e}
+.list{list-style:none;margin:0;padding:0} .list li{border:1px solid var(--line);background:#fff;border-radius:10px;margin:6px 0;padding:10px;display:flex;justify-content:space-between;align-items:center}
+.badge{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #cfe6ff;background:#eef6ff;color:#0a4a7c}
+.negative{color:#b20000}.positive{color:#0a7f2e}
+label{font-size:13px;display:block;margin:6px 0 2px} input,select{width:100%;padding:10px;border:1px solid #cfd8dc;border-radius:10px;background:#fff}
+.modal{position:fixed;inset:0;display:none;background:rgba(0,0,0,.35);align-items:center;justify-content:center}
+.modal .box{width:min(520px,92vw);background:#fff;border-radius:14px;padding:14px}
+.modal.show{display:flex}
+.tabbar{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.tabbar .tab{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 12px;cursor:pointer}
+.tabbar .tab.active{background:#0e7c86;color:#fff;border-color:#0e7c86}
+footer{padding:24px 0 10px;color:#666;font-size:12px;text-align:center}
+.small{font-size:12px;color:#6b7280}
+.hidden{display:none}
 </style>
 </head>
 <body>
+<header>
+  <div>
+    <h1>حسابدار صوتی</h1>
+    <div class="sub" id="pwaState">PWA</div>
+  </div>
+  <div class="row">
+    <button id="btnStart" class="btn primary">🎙️ شروع</button>
+    <button id="btnStop" class="btn danger">⏹ توقف</button>
+    <button id="btnSetup" class="btn">⚙️ تنظیم اولیه</button>
+    <button id="btnExport" class="btn">📤 خروجی JSON</button>
+    <button id="btnImport" class="btn">📥 ورود JSON</button>
+    <button id="btnNotify" class="btn">🔔 فعال‌سازی اعلان</button>
+  </div>
+</header>
 
-<header>💬 حسابدار صوتی</header>
+<main>
+  <div class="tabbar">
+    <div class="tab active" data-tab="dashboard">داشبورد</div>
+    <div class="tab" data-tab="transactions">تراکنش‌ها</div>
+    <div class="tab" data-tab="checks">چک‌ها</div>
+    <div class="tab" data-tab="inst">اقساط</div>
+    <div class="tab" data-tab="people">اشخاص</div>
+    <div class="tab" data-tab="accounts">حساب‌ها</div>
+  </div>
 
-<section id="actions">
-  <button class="chip" data-cmd="start">🎙️ شروع</button>
-  <button class="chip" data-cmd="stop">⏹ توقف</button>
-  <button class="chip" data-cmd="setup">⚙️ تنظیم اولیه</button>
-  <button class="chip" data-cmd="json">📤 خروجی JSON</button>
-</section>
+  <!-- Dashboard -->
+  <section id="tab-dashboard">
+    <div class="card">
+      <div class="grid g3">
+        <div><div>موجودی خالص</div><div id="netWorth" class="val">—</div></div>
+        <div><div>درآمد امروز</div><div id="todayIncome" class="val">—</div></div>
+        <div><div>خرج امروز</div><div id="todayExpense" class="val">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row">
+        <button class="btn" data-quick="say-exp">+ خرج</button>
+        <button class="btn" data-quick="say-inc">+ واریز</button>
+        <button class="btn" data-quick="add-check">+ چک</button>
+        <button class="btn" data-quick="add-inst">+ قسط</button>
+      </div>
+      <div class="small">مثال بگو: «۳۰۰ هزار خرج کردم بنزین» یا «۲ میلیون گرفتم بابت کار»</div>
+    </div>
+    <div class="card">
+      <h3>تراکنش‌های اخیر</h3>
+      <ul id="txList" class="list"></ul>
+    </div>
+  </section>
 
-<section class="card">
-  <h3>خلاصه سریع</h3>
-  <p>موجودی خالص: <span id="netWorth" class="value">۰</span></p>
-  <p>درآمد امروز: <span id="todayIncome" class="value">۰</span></p>
-  <p>خرج امروز: <span id="todayExpense" class="value">۰</span></p>
-</section>
+  <!-- Transactions -->
+  <section id="tab-transactions" class="hidden">
+    <div class="card">
+      <div class="row">
+        <div style="flex:1">
+          <label>توضیح</label><input id="txNote" placeholder="مثلاً خرید سوپر">
+        </div>
+        <div style="width:160px">
+          <label>مبلغ (تومان)</label><input id="txAmount" inputmode="numeric" placeholder="300000">
+        </div>
+        <div style="width:140px">
+          <label>نوع</label>
+          <select id="txType"><option value="expense">خرج</option><option value="income">واریز</option></select>
+        </div>
+      </div>
+      <div class="row"><button id="btnAddTx" class="btn primary">ثبت تراکنش</button></div>
+    </div>
+    <div class="card">
+      <ul id="allTx" class="list"></ul>
+    </div>
+  </section>
 
-<section class="card">
-  <h3>تراکنش‌های اخیر</h3>
-  <ul id="transactions"></ul>
-</section>
+  <!-- Checks -->
+  <section id="tab-checks" class="hidden">
+    <div class="card">
+      <div class="row">
+        <div style="flex:1"><label>یادداشت</label><input id="chNote" placeholder="چک پرداختی خرید قطعه"></div>
+        <div style="width:160px"><label>مبلغ</label><input id="chAmount" inputmode="numeric"></div>
+        <div style="width:190px"><label>سررسید</label><input id="chDue" type="date"></div>
+        <div style="width:170px"><label>نوع</label><select id="chKind"><option value="pay">پرداختی</option><option value="receive">دریافتی</option></select></div>
+      </div>
+      <div class="row"><button id="btnAddCheck" class="btn primary">+ ثبت چک</button></div>
+    </div>
+    <div class="card">
+      <h3>چک‌های باز</h3>
+      <ul id="checksOpen" class="list"></ul>
+    </div>
+    <div class="card">
+      <h3>چک‌های تسویه‌شده</h3>
+      <ul id="checksClosed" class="list"></ul>
+    </div>
+  </section>
+
+  <!-- Installments -->
+  <section id="tab-inst" class="hidden">
+    <div class="card">
+      <div class="row">
+        <div style="flex:1"><label>یادداشت</label><input id="insNote" placeholder="قسط وام خودرو"></div>
+        <div style="width:150px"><label>مبلغ هر قسط</label><input id="insPer" inputmode="numeric"></div>
+        <div style="width:130px"><label>تعداد</label><input id="insCount" inputmode="numeric" placeholder="12"></div>
+        <div style="width:180px"><label>اولین سررسید</label><input id="insNext" type="date"></div>
+      </div>
+      <div class="row"><button id="btnAddInst" class="btn primary">+ ثبت قسط</button></div>
+    </div>
+    <div class="card">
+      <h3>اقساط فعال</h3>
+      <ul id="insList" class="list"></ul>
+    </div>
+  </section>
+
+  <!-- People -->
+  <section id="tab-people" class="hidden">
+    <div class="card">
+      <div class="row">
+        <div style="flex:1"><label>نام</label><input id="pName"></div>
+        <div style="width:180px"><label>نقش</label><select id="pRole"><option value="debtor">بدهکار</option><option value="creditor">طلبکار</option></select></div>
+      </div>
+      <div class="row"><button id="btnAddPerson" class="btn primary">+ افزودن شخص</button></div>
+    </div>
+    <div class="card">
+      <ul id="peopleList" class="list"></ul>
+    </div>
+  </section>
+
+  <!-- Accounts -->
+  <section id="tab-accounts" class="hidden">
+    <div class="card">
+      <div class="row">
+        <div style="flex:1"><label>نام حساب</label><input id="accName" placeholder="کیف پول / بانک ملت ..."></div>
+      </div>
+      <div class="row"><button id="btnAddAccount" class="btn primary">+ افزودن حساب</button></div>
+    </div>
+    <div class="card">
+      <ul id="accList" class="list"></ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- Modal import -->
+<div id="modalImport" class="modal">
+  <div class="box">
+    <h3>ورود JSON</h3>
+    <p class="small">فایل پشتیبان را انتخاب کن. همه داده‌های فعلی جایگزین می‌شود.</p>
+    <input type="file" id="importFile" accept=".json,application/json"/>
+    <div class="row" style="margin-top:10px">
+      <button id="doImport" class="btn primary">ورود</button>
+      <button id="closeImport" class="btn">بستن</button>
+    </div>
+  </div>
+</div>
+
+<footer>داده‌ها فقط روی همین گوشی ذخیره می‌شود.</footer>
 
 <script>
-// --- ذخیره داده‌ها در مرورگر ---
-const Storage = {
-  key: "va-data",
-  get() { return JSON.parse(localStorage.getItem(this.key) || "[]"); },
-  set(v) { localStorage.setItem(this.key, JSON.stringify(v)); }
+/* ====== ابزارهای کمکی ====== */
+const faDigits = d => d.replace(/[۰-۹]/g, ch => '۰۱۲۳۴۵۶۷۸۹'.indexOf(ch));
+const toNum = s => parseInt((faDigits(String(s||'')).match(/\d+/)||['0'])[0],10)||0;
+const todayISO = () => new Date().toISOString().slice(0,10);
+
+/* ====== پایگاه محلی ====== */
+const DB = {
+  key:'va-db-v2',
+  init(){
+    if(!localStorage.getItem(this.key)){
+      const seed={base:{assets:0,debts:0,checksTotal:0,installmentsTotal:0,start:new Date().toISOString()},
+      accounts:[{id:'wallet',name:'کیف پول'}],
+      people:[], categories:[{id:'groceries',name:'خواروبار',type:'expense'},{id:'car',name:'خودرو',type:'expense'},{id:'income',name:'درآمد',type:'income'}],
+      tx:[], checks:[], inst:[]};
+      localStorage.setItem(this.key,JSON.stringify(seed));
+    }
+  },
+  get(){return JSON.parse(localStorage.getItem(this.key))},
+  set(v){localStorage.setItem(this.key,JSON.stringify(v))}
 };
+DB.init();
 
-// --- داده‌های پایه (دارایی / بدهی / چک / قسط) ---
-function getBase() { return JSON.parse(localStorage.getItem('va-base') || '{"assets":0,"debts":0,"checks":0,"installments":0}'); }
-function setBase(b) { localStorage.setItem('va-base', JSON.stringify(b)); }
-
-// --- صدا و گفتار ---
-const R = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec;
-
-function startListening() {
-  if (!R) return alert("مرورگر از گفتار پشتیبانی نمی‌کند.");
-  rec = new R();
-  rec.lang = 'fa-IR';
-  rec.start();
-  rec.onresult = e => handleSpeech(e.results[0][0].transcript);
-  rec.onerror = e => console.log(e);
+/* ====== گفتار ====== */
+const Rec = window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null;
+function speak(t){ if('speechSynthesis'in window){const u=new SpeechSynthesisUtterance(t);u.lang='fa-IR';speechSynthesis.speak(u);} }
+function startRec(){
+  if(!Rec){alert('مرورگر از گفتار پشتیبانی نمی‌کند');return}
+  if(rec) try{rec.stop()}catch{}
+  rec=new Rec(); rec.lang='fa-IR'; rec.interimResults=false; rec.onresult=e=>{
+    const t=e.results[0][0].transcript.trim();
+    parseSpeech(t);
+  }; rec.onerror=console.warn; rec.start(); speak('گوش می‌دم');
 }
+function stopRec(){ if(rec) try{rec.stop()}catch{} speak('متوقف شد') }
 
-function stopListening() {
-  if (rec) rec.stop();
+/* ====== پارس دستورات گفتاری ====== */
+function parseSpeech(t){
+  const txt = t;
+  // خرج
+  if(/خرج/.test(txt)){ const amt = parseAmount(txt); addTx({amount:-amt,note:txt}); return speak('خرج ثبت شد'); }
+  // واریز/گرفتم
+  if(/واریز|گرفتم|دریافت/.test(txt)){ const amt=parseAmount(txt); addTx({amount:+amt,note:txt}); return speak('واریزی ثبت شد'); }
+  // چک
+  if(/چک/.test(txt)){ const amt=parseAmount(txt); const due = todayISO(); addCheck({amount:amt,kind: /دریافت/.test(txt)?'receive':'pay', due, note:txt}); return speak('چک ثبت شد'); }
+  // قسط
+  if(/قسط/.test(txt)){ const per=parseAmount(txt); addInst({per,count:12,next:todayISO(),note:txt}); return speak('قسط ثبت شد'); }
+  // تنظیم اولیه
+  if(/تنظیم/.test(txt)) return setupWizard();
+  speak('متوجه نشدم');
 }
+function parseAmount(t){ t = faDigits(t.replace(/[^\d۰-۹]/g,' ')); return toNum(t); }
 
-// --- پردازش گفتار ---
-function handleSpeech(t) {
-  say(`ثبت شد: ${t}`);
-  const num = extractNumber(t);
-  if (t.includes("خرج")) addTransaction(-num, t);
-  else if (t.includes("گرفتم") || t.includes("واریز")) addTransaction(num, t);
-  else if (t.includes("تنظیم اولیه")) setupWizard();
-  else say("دستور نامشخص بود.");
-  showSummary();
+/* ====== عملیات داده ====== */
+function addTx({amount,note}){ const db=DB.get(); db.tx.push({id:crypto.randomUUID(),date:new Date().toISOString(),amount,note}); DB.set(db); render(); }
+function addPerson(name,role){ const db=DB.get(); db.people.push({id:crypto.randomUUID(),name,role}); DB.set(db); renderPeople(); }
+function addAccount(name){ const db=DB.get(); db.accounts.push({id:crypto.randomUUID(),name}); DB.set(db); renderAccounts(); }
+function addCheck({amount,kind,due,note}){ const db=DB.get(); db.checks.push({id:crypto.randomUUID(),amount,kind,due,status:'pending',note}); DB.set(db); renderChecks(); }
+function clearCheck(id){ const db=DB.get(); const c=db.checks.find(x=>x.id===id); if(c){c.status='cleared'} DB.set(db); renderChecks(); }
+function addInst({per,count,next,note}){ const db=DB.get(); db.inst.push({id:crypto.randomUUID(),per,count,paid:0,next,note}); DB.set(db); renderInst(); }
+function payInst(id){ const db=DB.get(); const i=db.inst.find(x=>x.id===id); if(!i) return; i.paid++; i.next = nextMonth(i.next); if(i.paid>=i.count) i.done=true; DB.set(db); renderInst(); }
+function nextMonth(iso){ const d=new Date(iso); d.setMonth(d.getMonth()+1); return d.toISOString().slice(0,10); }
+
+/* ====== خلاصه و رندر ====== */
+function totalsToday(){ const db=DB.get(); let inc=0,exp=0; const today=new Date().toISOString().slice(0,10);
+  db.tx.forEach(t=>{ if((t.date||'').slice(0,10)===today){ if(t.amount>0) inc+=t.amount; else exp+=Math.abs(t.amount); }});
+  return {inc,exp};
 }
+function netWorth(){ const db=DB.get(); const base=db.base.assets - db.base.debts; const sum=db.tx.reduce((a,t)=>a+t.amount,0); return base+sum; }
 
-// --- استخراج عدد از متن فارسی ---
-function extractNumber(t) {
-  if (!t) return 0;
-  t = t.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-  const n = parseInt(t.replace(/[^\d]/g, '')) || 0;
-  return n;
+function renderSummary(){
+  const t=totalsToday(); document.getElementById('todayIncome').textContent = t.inc.toLocaleString('fa-IR');
+  document.getElementById('todayExpense').textContent = t.exp.toLocaleString('fa-IR');
+  document.getElementById('netWorth').textContent = netWorth().toLocaleString('fa-IR');
 }
-
-// --- افزودن تراکنش ---
-function addTransaction(amount, desc) {
-  const data = Storage.get();
-  data.push({ time: Date.now(), amount, desc });
-  Storage.set(data);
-  renderTransactions();
+function renderRecent(){
+  const ul=document.getElementById('txList'); const db=DB.get(); const rows=db.tx.slice(-12).reverse();
+  ul.innerHTML=rows.map(r=>`<li><div>${r.note||'—'}<div class="small">${new Date(r.date).toLocaleString('fa-IR')}</div></div><div class="${r.amount<0?'negative':'positive'}">${Math.abs(r.amount).toLocaleString('fa-IR')} ت</div></li>`).join('');
 }
-
-// --- نمایش تراکنش‌ها ---
-function renderTransactions() {
-  const list = Storage.get().slice(-10).reverse();
-  const ul = document.getElementById("transactions");
-  ul.innerHTML = list.map(x => `<li>${x.desc} → ${x.amount.toLocaleString('fa-IR')} ت</li>`).join("");
+function renderAllTx(){
+  const ul=document.getElementById('allTx'); const db=DB.get(); const rows=db.tx.slice().reverse();
+  ul.innerHTML=rows.map(r=>`<li><div>${r.note||'—'}<div class="small">${new Date(r.date).toLocaleString('fa-IR')}</div></div><div class="${r.amount<0?'negative':'positive'}">${Math.abs(r.amount).toLocaleString('fa-IR')} ت</div></li>`).join('');
 }
-
-// --- محاسبه خلاصه ---
-function showSummary() {
-  const base = getBase();
-  const list = Storage.get();
-  let inc = 0, exp = 0;
-  list.forEach(x => {
-    if (x.amount > 0) inc += x.amount;
-    else exp += Math.abs(x.amount);
-  });
-  const net = (base.assets - base.debts) + (inc - exp);
-
-  document.getElementById('todayIncome').textContent = inc.toLocaleString('fa-IR');
-  document.getElementById('todayExpense').textContent = exp.toLocaleString('fa-IR');
-  document.getElementById('netWorth').textContent = net.toLocaleString('fa-IR');
+function renderChecks(){
+  const db=DB.get(); const open=db.checks.filter(c=>c.status==='pending').sort((a,b)=>a.due.localeCompare(b.due));
+  const closed=db.checks.filter(c=>c.status==='cleared').slice(-20).reverse();
+  const o=document.getElementById('checksOpen'); const c=document.getElementById('checksClosed');
+  o.innerHTML=open.map(x=>`<li><div>${x.note||'چک'}<div class="small">${x.kind==='pay'?'پرداختی':'دریافتی'} | سررسید ${x.due}</div></div><div>${x.amount.toLocaleString('fa-IR')} ت <button class="btn" onclick="clearCheck('${x.id}')">تسویه</button></div></li>`).join('');
+  c.innerHTML=closed.map(x=>`<li><div>${x.note||'چک'}</div><div class="small">${x.amount.toLocaleString('fa-IR')} ت</div></li>`).join('');
 }
-
-// --- تنظیم اولیه ---
-async function setupWizard() {
-  say("بریم برای تنظیم اولیه.");
-  const assets = await SpeechAsk("دارایی کل چقدره؟");
-  const debts = await SpeechAsk("جمع بدهی‌ها چقدره؟");
-  const checks = await SpeechAsk("جمع چک‌های باز چقدره؟");
-  const ins = await SpeechAsk("جمع اقساط ماهانه چقدره؟");
-  setBase({
-    assets: extractNumber(assets),
-    debts: extractNumber(debts),
-    checks: extractNumber(checks),
-    installments: extractNumber(ins)
-  });
-  say("ذخیره شد و خلاصه به‌روز شد.");
-  showSummary();
+function renderInst(){
+  const db=DB.get(); const list=db.inst.filter(i=>!i.done).sort((a,b)=>a.next.localeCompare(b.next));
+  const ul=document.getElementById('insList');
+  ul.innerHTML=list.map(i=>`<li><div>${i.note||'قسط'}<div class="small">بعدی: ${i.next} | پرداخت‌شده ${i.paid}/${i.count}</div></div><div>${i.per.toLocaleString('fa-IR')} ت <button class="btn" onclick="payInst('${i.id}')">پرداخت</button></div></li>`).join('');
 }
+function renderPeople(){ const db=DB.get(); const ul=document.getElementById('peopleList'); ul.innerHTML=db.people.map(p=>`<li><div>${p.name}</div><div class="badge">${p.role==='debtor'?'بدهکار':'طلبکار'}</div></li>`).join(''); }
+function renderAccounts(){ const db=DB.get(); const ul=document.getElementById('accList'); ul.innerHTML=db.accounts.map(a=>`<li><div>${a.name}</div></li>`).join(''); }
 
-// --- گفتار خروجی (پاسخ صوتی) ---
-function say(txt) {
-  const u = new SpeechSynthesisUtterance(txt);
-  u.lang = "fa-IR";
-  speechSynthesis.speak(u);
+function render(){ renderSummary(); renderRecent(); renderAllTx(); renderChecks(); renderInst(); renderPeople(); renderAccounts(); }
+
+/* ====== تنظیم اولیه ====== */
+async function setupWizard(){
+  speak('تنظیم اولیه شروع شد');
+  const assets = await ask('دارایی کل الان چقدره؟');
+  const debts  = await ask('جمع بدهی‌ها چقدره؟');
+  const checks = await ask('جمع چک‌های باز چقدره؟');
+  const inst   = await ask('جمع اقساط ماهانه چقدره؟');
+  const db=DB.get(); db.base.assets=toNum(assets); db.base.debts=toNum(debts); db.base.checksTotal=toNum(checks); db.base.installmentsTotal=toNum(inst); DB.set(db);
+  renderSummary(); speak('ذخیره شد');
 }
-
-// --- پرسش گفتاری ---
-function SpeechAsk(prompt) {
-  return new Promise(res => {
-    say(prompt);
-    if (!R) return res(prompt("پاسخ را بنویس:"));
-    const r = new R();
-    r.lang = 'fa-IR';
-    r.onresult = e => { res(e.results[0][0].transcript); r.stop(); };
-    r.onerror = () => res("");
-    r.start();
+function ask(prompt){
+  return new Promise(res=>{
+    speak(prompt);
+    const R = window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!R){ const t = window.prompt(prompt); return res(t||''); }
+    const r=new R(); r.lang='fa-IR'; r.onresult=e=>{res(e.results[0][0].transcript); r.stop();}; r.onerror=_=>res(''); r.start();
   });
 }
 
-// --- رویداد دکمه‌ها ---
-document.querySelectorAll(".chip").forEach(btn => {
-  btn.onclick = () => {
-    const key = btn.dataset.cmd;
-    if (key === "start") startListening();
-    if (key === "stop") stopListening();
-    if (key === "setup") setupWizard();
-    if (key === "json") exportJSON();
+/* ====== Import/Export ====== */
+function exportJSON(){
+  const blob = new Blob([localStorage.getItem(DB.key)||'{}'],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='voice-accountant-backup.json'; a.click();
+}
+function openImport(){ document.getElementById('modalImport').classList.add('show'); }
+function closeImport(){ document.getElementById('modalImport').classList.remove('show'); }
+async function doImport(file){
+  if(!file) return; const txt=await file.text(); localStorage.setItem(DB.key,txt); closeImport(); render(); speak('ورود داده انجام شد');
+}
+
+/* ====== تب‌ها ====== */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
+    const id=t.dataset.tab; document.querySelectorAll('main>section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById('tab-'+id).classList.remove('hidden');
   };
 });
 
-// --- خروجی JSON ---
-function exportJSON() {
-  const blob = new Blob([JSON.stringify(Storage.get(), null, 2)], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "transactions.json";
-  a.click();
-}
+/* ====== هندل دکمه‌ها ====== */
+document.getElementById('btnStart').onclick=startRec;
+document.getElementById('btnStop').onclick=stopRec;
+document.getElementById('btnSetup').onclick=setupWizard;
+document.getElementById('btnExport').onclick=exportJSON;
+document.getElementById('btnImport').onclick=openImport;
+document.getElementById('closeImport').onclick=closeImport;
+document.getElementById('doImport').onclick=()=>doImport(document.getElementById('importFile').files[0]);
+document.querySelectorAll('[data-quick]').forEach(b=>{
+  b.onclick=()=>{
+    const k=b.dataset.quick;
+    if(k==='say-exp') startRec();
+    if(k==='say-inc') startRec();
+    if(k==='add-check'){ const amt=toNum(prompt('مبلغ چک؟')); const due=prompt('تاریخ سررسید (YYYY-MM-DD)?',todayISO()); const kind=confirm('پرداختی است؟ تایید=پرداختی ، انصراف=دریافتی')?'pay':'receive'; addCheck({amount:amt,kind,due,note:'چک'}); }
+    if(k==='add-inst'){ const per=toNum(prompt('مبلغ هر قسط؟')); const count=toNum(prompt('تعداد اقساط؟', '12')); const next=prompt('اولین سررسید؟ (YYYY-MM-DD)', todayISO()); addInst({per,count,next,note:'قسط'}); }
+  };
+});
 
-// شروع اولیه
-renderTransactions();
-showSummary();
+/* تراکنش فرم دستی */
+document.getElementById('btnAddTx').onclick=()=>{
+  const note=document.getElementById('txNote').value.trim();
+  const amount=toNum(document.getElementById('txAmount').value);
+  const type=document.getElementById('txType').value;
+  if(!amount) return alert('مبلغ؟');
+  addTx({amount:type==='income'?amount:-amount,note:note||type});
+  document.getElementById('txNote').value=''; document.getElementById('txAmount').value='';
+};
+
+/* چک فرم دستی */
+document.getElementById('btnAddCheck').onclick=()=>{
+  const note=document.getElementById('chNote').value.trim();
+  const amount=toNum(document.getElementById('chAmount').value);
+  const due=document.getElementById('chDue').value||todayISO();
+  const kind=document.getElementById('chKind').value;
+  if(!amount) return alert('مبلغ؟');
+  addCheck({amount,kind,due,note});
+  document.getElementById('chNote').value=''; document.getElementById('chAmount').value='';
+};
+
+/* قسط فرم دستی */
+document.getElementById('btnAddInst').onclick=()=>{
+  const note=document.getElementById('insNote').value.trim();
+  const per=toNum(document.getElementById('insPer').value);
+  const count=toNum(document.getElementById('insCount').value||'1');
+  const next=document.getElementById('insNext').value||todayISO();
+  if(!per||!count) return alert('مبلغ/تعداد؟');
+  addInst({per,count,next,note});
+  document.getElementById('insNote').value=''; document.getElementById('insPer').value=''; document.getElementById('insCount').value='';
+};
+
+/* اشخاص/حساب‌ها */
+document.getElementById('btnAddPerson').onclick=()=>{const n=document.getElementById('pName').value.trim(); if(!n)return; addPerson(n,document.getElementById('pRole').value); document.getElementById('pName').value='';}
+document.getElementById('btnAddAccount').onclick=()=>{const n=document.getElementById('accName').value.trim(); if(!n)return; addAccount(n); document.getElementById('accName').value='';}
+
+/* ====== PWA & Push ====== */
+if('serviceWorker'in navigator){ navigator.serviceWorker.register('sw.js').then(()=>{document.getElementById('pwaState').textContent='PWA فعال';}); }
+document.getElementById('btnNotify').onclick=async()=>{
+  if(!('Notification'in window)) return alert('اعلان پشتیبانی نمی‌شود');
+  const perm = await Notification.requestPermission();
+  if(perm!=='granted') return alert('اجازه اعلان داده نشد');
+  if(!('serviceWorker'in navigator)) return alert('ServiceWorker نیست');
+  const reg = await navigator.serviceWorker.ready;
+  try{
+    const sub = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey: urlBase64ToUint8Array('BPUw0WkuhZ7lqYbzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')});
+    localStorage.setItem('va-push-sub', JSON.stringify(sub));
+    alert('اشتراک اعلان ثبت شد. خروجی JSON subscription را به سرور بده.');
+  }catch(e){ alert('خطا در subscribe: '+e); }
+};
+function urlBase64ToUint8Array(base64String){const padding='='.repeat((4-base64String.length%4)%4);const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');const raw=atob(base64);const arr=new Uint8Array(raw.length);for(let i=0;i<raw.length;++i)arr[i]=raw.charCodeAt(i);return arr;}
+
+/* ====== آغاز ====== */
+render();
 </script>
 </body>
 </html>
