@@ -1,401 +1,388 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mia AI – دستیار حسابداری هوشمند</title>
-
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-:root {
-  --color-bg: #f7f7f7;
-  --color-text: #222;
-  --color-primary: #4a90e2;
-  --color-card: #fff;
-  --color-border: #ccc;
-}
-body.dark {
-  --color-bg: #1c1c1e;
-  --color-text: #eee;
-  --color-card: #2c2c2e;
-  --color-border: #444;
-}
-body.parmis {
-  --color-bg: #eaf2f8;
-  --color-text: #2e4053;
-  --color-primary: #2874a6;
-}
-body.modern {
-  --color-bg: #ffffff;
-  --color-text: #111;
-  --color-primary: #6c63ff;
-  --color-card: #fafafa;
-}
-
-body {
-  font-family: "Vazirmatn", sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
-  margin: 0;
-  padding: 0;
-  transition: background 0.3s, color 0.3s;
-}
-
-header {
-  background: var(--color-primary);
-  color: white;
-  padding: 1rem;
-  text-align: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  border-bottom: 3px solid var(--color-border);
-}
-
-nav {
-  display: flex;
-  justify-content: space-around;
-  background: var(--color-card);
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-  padding: 0.5rem 0;
-}
-
-nav button {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-  color: var(--color-primary);
-}
-
-section {
-  padding: 1rem;
-}
-
-.card {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-
-input, select, button, textarea {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-button.primary {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.chart-container {
-  width: 100%;
-  height: 250px;
-}
-
-.hidden {
-  display: none;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حسابدار هوشمند پارمیس</title>
+  <style>
+    :root {
+      --bg: #fff;
+      --text: #111;
+      --primary: #6b3fa0;
+      --accent: #d9b44a;
+    }
+    [data-theme="dark"] {
+      --bg: #111;
+      --text: #eee;
+      --primary: #0d6efd;
+      --accent: #444;
+    }
+    [data-theme="light"] {
+      --bg: #fdfdfd;
+      --text: #222;
+      --primary: #0066cc;
+      --accent: #ccc;
+    }
+    [data-theme="parmis"] {
+      --bg: #f9f6ff;
+      --text: #2a1f43;
+      --primary: #7b4b9a;
+      --accent: #dcb34a;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Vazirmatn', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      background: var(--accent);
+      padding: 5px;
+    }
+    nav button {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: bold;
+    }
+    main { flex: 1; padding: 10px; }
+    .page { display: none; }
+    .page.active { display: block; }
+    form { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+    input, select, button {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #aaa;
+      font-family: inherit;
+    }
+    button {
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { opacity: 0.8; }
+    footer {
+      text-align: center;
+      padding: 10px;
+      background: var(--accent);
+    }
+    .summary { display: flex; gap: 20px; font-size: 1.2em; }
+    #transaction-list, #mini-list { margin-top: 10px; }
+    .item { padding: 6px; border-bottom: 1px solid #ccc; }
+  </style>
 </head>
 
-<body class="parmis">
-<header>📊 Mia AI – حسابدار هوشمند</header>
+<body data-theme="parmis">
+<header>
+  <h1>📒 حسابدار هوشمند</h1>
+  <select id="theme-selector">
+    <option value="parmis">پارمیس کلاسیک</option>
+    <option value="dark">مدرن تیره</option>
+    <option value="light">روشن ساده</option>
+    <option value="auto">سیستم خودکار</option>
+  </select>
+</header>
 
-<nav>
-  <button onclick="showSection('dashboard')">خانه</button>
-  <button onclick="showSection('transactions')">تراکنش‌ها</button>
-  <button onclick="showSection('reports')">گزارش</button>
-  <button onclick="showSection('voice')">🎤 صوتی</button>
-  <button onclick="showSection('settings')">⚙️ تنظیمات</button>
+<nav id="main-menu">
+  <button data-page="dashboard">🏠 داشبورد</button>
+  <button data-page="transactions">💰 تراکنش‌ها</button>
+  <button data-page="accounts">🏦 حساب‌ها</button>
+  <button data-page="reports">📊 گزارش‌ها</button>
+  <button data-page="mini">⚡ حسابداری سبک</button>
+  <button data-page="settings">⚙️ تنظیمات</button>
 </nav>
 
-<main>
-  <!-- بخش داشبورد -->
-  <section id="dashboard" class="card">
-    <h3>خلاصه حساب</h3>
-    <p>درآمد کل: <span id="totalIncome">۰</span> تومان</p>
-    <p>هزینه کل: <span id="totalExpense">۰</span> تومان</p>
-    <p>مانده: <span id="balance">۰</span> تومان</p>
-  </section>
-
-  <!-- بخش تراکنش‌ها -->
-  <section id="transactions" class="card hidden">
-    <h3>افزودن تراکنش</h3>
-    <select id="type">
-      <option value="income">درآمد</option>
-      <option value="expense">هزینه</option>
-      <option value="transfer">انتقال</option>
-    </select>
-    <input type="text" id="desc" placeholder="توضیح (مثلاً فروش کالا)">
-    <input type="number" id="amount" placeholder="مبلغ">
-    <button class="primary" onclick="addTransaction()">ذخیره تراکنش</button>
-
-    <h4>لیست تراکنش‌ها</h4>
-    <div id="txList"></div>
-  </section>
-    <!-- بخش گزارش‌ها -->
-  <section id="reports" class="card hidden">
-    <h3>گزارش‌های گرافیکی</h3>
-    <div class="chart-container">
-      <canvas id="chart"></canvas>
+<main id="content">
+  <section id="dashboard" class="page active">
+    <h2>خلاصه مالی</h2>
+    <div class="summary">
+      <div>💵 درآمد: <span id="income-total">0</span></div>
+      <div>💸 هزینه: <span id="expense-total">0</span></div>
+      <div>💰 مانده: <span id="balance-total">0</span></div>
     </div>
-    <button class="primary" onclick="generateChart()">نمایش نمودار</button>
+    <canvas id="yearChart"></canvas>
   </section>
 
-  <!-- بخش هوش صوتی -->
-  <section id="voice" class="card hidden">
-    <h3>دستیار صوتی</h3>
-    <p>برای افزودن تراکنش با صدا بگو:  
-    <b>«درآمد امروز پنج میلیون از فروش»</b></p>
-    <button id="startVoice" class="primary">🎤 شروع گوش دادن</button>
-    <p id="voiceText"></p>
+  <section id="transactions" class="page">
+    <h2>ثبت تراکنش جدید</h2>
+    <form id="transaction-form">
+      <input type="text" id="category" placeholder="دسته (مثلاً سوپرمارکت)">
+      <input type="text" id="desc" placeholder="توضیح">
+      <input type="number" id="amount" placeholder="مبلغ">
+      <select id="type">
+        <option value="income">درآمد</option>
+        <option value="expense">هزینه</option>
+      </select>
+      <button type="submit">➕ ثبت</button>
+    </form>
+    <div id="transaction-list"></div>
   </section>
 
-  <!-- بخش تنظیمات -->
-  <section id="settings" class="card hidden">
-    <h3>تنظیمات</h3>
-    <label>انتخاب تم:</label>
-    <select id="themeSelect" onchange="changeTheme(this.value)">
-      <option value="parmis">پارمیس</option>
-      <option value="dark">تیره</option>
-      <option value="modern">مدرن</option>
-      <option value="light">روشن</option>
-    </select>
+  <section id="mini" class="page">
+    <h2>حسابداری سبک</h2>
+    <form id="mini-form">
+      <input type="text" id="mini-desc" placeholder="توضیح">
+      <input type="number" id="mini-amount" placeholder="مبلغ">
+      <select id="mini-type">
+        <option value="income">درآمد</option>
+        <option value="expense">هزینه</option>
+      </select>
+      <button type="submit">➕ افزودن</button>
+    </form>
+    <div id="mini-list"></div>
+  </section>
 
-    <label>بکاپ داده‌ها</label>
-    <button onclick="backupData()">📦 تهیه نسخه پشتیبان</button>
-
-    <label>بازیابی داده‌ها</label>
-    <input type="file" id="restoreFile" onchange="restoreData(event)">
-
-    <h4>رمزگذاری (AES)</h4>
-    <input type="password" id="aesKey" placeholder="کلید رمزگذاری">
-    <button class="primary" onclick="encryptData()">رمزگذاری داده‌ها</button>
+  <section id="settings" class="page">
+    <h2>تنظیمات</h2>
+    <button id="backup-now">💾 بکاپ</button>
+    <button id="close-fiscal-year">📅 بستن سال مالی</button>
+    <button id="reset-data">🧨 حذف کل داده‌ها</button>
   </section>
 </main>
 
-<script>
-// ------------------------------
-// 🔹 مدیریت بخش‌ها
-// ------------------------------
-function showSection(id) {
-  document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
-
-// ------------------------------
-// 🔹 داده‌ها و تراکنش‌ها
-// ------------------------------
-let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-
-function addTransaction() {
-  const type = document.getElementById('type').value;
-  const desc = document.getElementById('desc').value;
-  const amount = parseFloat(document.getElementById('amount').value);
-
-  if (!desc || !amount) return alert("توضیح و مبلغ را وارد کنید");
-
-  transactions.push({ type, desc, amount, date: new Date().toLocaleDateString('fa-IR') });
-  localStorage.setItem('transactions', JSON.stringify(transactions));
-  updateDashboard();
-  renderList();
-  alert("✅ تراکنش ثبت شد");
-  document.getElementById('desc').value = '';
-  document.getElementById('amount').value = '';
-}
-
-function renderList() {
-  const list = document.getElementById('txList');
-  list.innerHTML = transactions.map(t =>
-    `<div class="card">
-      <b>${t.type === 'income' ? '💰 درآمد' : t.type === 'expense' ? '💸 هزینه' : '🔁 انتقال'}</b>
-      <p>${t.desc}</p>
-      <p>${t.amount.toLocaleString()} تومان</p>
-      <small>${t.date}</small>
-    </div>`
-  ).join('');
-}
-
-function updateDashboard() {
-  let income = transactions.filter(t => t.type === 'income').reduce((a,b)=>a+b.amount,0);
-  let expense = transactions.filter(t => t.type === 'expense').reduce((a,b)=>a+b.amount,0);
-  document.getElementById('totalIncome').textContent = income.toLocaleString();
-  document.getElementById('totalExpense').textContent = expense.toLocaleString();
-  document.getElementById('balance').textContent = (income - expense).toLocaleString();
-}
-updateDashboard();
-renderList();
-
-// ------------------------------
-// 📊 گزارش‌ها
-// ------------------------------
-function generateChart() {
-  const ctx = document.getElementById('chart');
-  const income = transactions.filter(t => t.type === 'income').reduce((a,b)=>a+b.amount,0);
-  const expense = transactions.filter(t => t.type === 'expense').reduce((a,b)=>a+b.amount,0);
-  new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: ['درآمد', 'هزینه'],
-      datasets: [{
-        data: [income, expense],
-        borderWidth: 1
-      }]
-    }
-  });
-}
-
-// ------------------------------
-// 🎤 هوش صوتی (SpeechRecognition)
-// ------------------------------
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (SpeechRecognition) {
-  const recognizer = new SpeechRecognition();
-  recognizer.lang = 'fa-IR';
-  recognizer.continuous = false;
-
-  document.getElementById('startVoice').onclick = () => {
-    recognizer.start();
-    document.getElementById('voiceText').textContent = "در حال گوش دادن...";
-  };
-
-  recognizer.onresult = (event) => {
-    const text = event.results[0][0].transcript;
-    document.getElementById('voiceText').textContent = text;
-    parseVoiceCommand(text);
-  };
-}
-
-function parseVoiceCommand(text) {
-  if (text.includes('درآمد')) {
-    let amount = extractNumber(text);
-    transactions.push({type: 'income', desc: 'درآمد صوتی', amount});
-  } else if (text.includes('هزینه')) {
-    let amount = extractNumber(text);
-    transactions.push({type: 'expense', desc: 'هزینه صوتی', amount});
-  }
-  localStorage.setItem('transactions', JSON.stringify(transactions));
-  updateDashboard();
-  renderList();
-}
-
-function extractNumber(text) {
-  const match = text.match(/\d+/g);
-  return match ? parseInt(match.join('')) : 0;
-}
-  // ------------------------------
-// 🔒 رمزگذاری داده‌ها (AES)
-// ------------------------------
-async function encryptData() {
-  const keyText = document.getElementById('aesKey').value;
-  if (!keyText) return alert('کلید رمزگذاری را وارد کنید');
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw', enc.encode(keyText), 'AES-GCM', false, ['encrypt']
-  );
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const data = JSON.stringify(transactions);
-  const encrypted = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv }, key, enc.encode(data)
-  );
-  const blob = new Blob([iv, new Uint8Array(encrypted)], { type: 'application/octet-stream' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'backup_encrypted.dat';
-  link.click();
-  alert('✅ داده‌ها رمزگذاری و دانلود شدند.');
-}
-
-// ------------------------------
-// ☁️ بکاپ و بازیابی داده‌ها
-// ------------------------------
-function backupData() {
-  const blob = new Blob([JSON.stringify(transactions, null, 2)], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'backup_miaai.json';
-  link.click();
-  alert('📦 نسخه پشتیبان آماده است.');
-}
-
-function restoreData(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    transactions = JSON.parse(e.target.result);
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-    updateDashboard();
-    renderList();
-    alert('✅ داده‌ها با موفقیت بازیابی شدند.');
-  };
-  reader.readAsText(file);
-}
-
-// ------------------------------
-// 🔔 اعلان‌ها (Notifications)
-// ------------------------------
-if ('Notification' in window) {
-  Notification.requestPermission().then(p => {
-    if (p === 'granted') {
-      scheduleReminders();
-    }
-  });
-}
-
-function scheduleReminders() {
-  setTimeout(() => {
-    new Notification('🔔 یادآوری Mia AI', {
-      body: 'سررسید اقساط یا چک‌های خود را بررسی کنید 💳',
-      icon: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
-    });
-  }, 10000); // نمایش اعلان پس از ۱۰ ثانیه به عنوان نمونه
-}
-
-// ------------------------------
-// 🎨 تغییر تم‌ها
-// ------------------------------
-function changeTheme(theme) {
-  document.body.className = theme === 'light' ? '' : theme;
-  localStorage.setItem('theme', theme);
-}
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) changeTheme(savedTheme);
-
-// ------------------------------
-// 🕓 بکاپ خودکار زمان خروج
-// ------------------------------
-window.addEventListener('beforeunload', () => {
-  localStorage.setItem('transactions', JSON.stringify(transactions));
-});
-
-// ------------------------------
-// 🧮 ماشین حساب داخلی (ساده)
-// ------------------------------
-function quickCalc(expression) {
-  try { return eval(expression); }
-  catch { return 'خطا'; }
-}
-
-// ------------------------------
-// پایان
-// ------------------------------
-</script>
-
-<footer style="text-align:center;padding:1rem;font-size:0.8rem;color:gray;">
-  Mia AI © 2025 — نسخه فاز دوم
+<footer>
+  <p>© 2025 حسابدار هوشمند پارمیس — نسخه آفلاین</p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  /* =========================
+   💡 داده‌ها و متغیرهای اصلی
+   ========================= */
+let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+let miniData = JSON.parse(localStorage.getItem('miniData') || '[]');
+let fiscalYear = JSON.parse(localStorage.getItem('fiscalYear') || '{"year":1404,"active":true}');
+let theme = localStorage.getItem('theme') || 'parmis';
+
+/* =========================
+   🧭 ناوبری بین صفحات
+   ========================= */
+const pages = document.querySelectorAll('.page');
+document.querySelectorAll('#main-menu button').forEach(btn=>{
+  btn.onclick = ()=>{
+    pages.forEach(p=>p.classList.remove('active'));
+    document.getElementById(btn.dataset.page).classList.add('active');
+  };
+});
+
+/* =========================
+   🎨 مدیریت تم‌ها
+   ========================= */
+const themeSelector = document.getElementById('theme-selector');
+function applyTheme(th){
+  if(th==='auto'){
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.body.dataset.theme = prefersDark?'dark':'light';
+  } else {
+    document.body.dataset.theme = th;
+  }
+  localStorage.setItem('theme', th);
+  themeSelector.value = th;
+}
+themeSelector.onchange = e=>applyTheme(e.target.value);
+applyTheme(theme);
+
+/* =========================
+   💰 ثبت تراکنش جدید
+   ========================= */
+document.getElementById('transaction-form').onsubmit = e=>{
+  e.preventDefault();
+  const category = categoryInput.value.trim();
+  const desc = document.getElementById('desc').value.trim();
+  const amount = parseFloat(document.getElementById('amount').value);
+  const type = document.getElementById('type').value;
+  if(!amount) return;
+  transactions.push({category,desc,amount,type,date:new Date().toLocaleDateString('fa-IR')});
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+  renderTransactions();
+  updateDashboard();
+  e.target.reset();
+};
+const categoryInput=document.getElementById('category');
+function renderTransactions(){
+  const list = document.getElementById('transaction-list');
+  list.innerHTML = '';
+  transactions.forEach((t,i)=>{
+    const div=document.createElement('div');
+    div.className='item';
+    div.textContent=`${t.date} | ${t.category} - ${t.desc} : ${t.amount.toLocaleString()} (${t.type==='income'?'درآمد':'هزینه'})`;
+    list.appendChild(div);
+  });
+}
+renderTransactions();
+
+/* =========================
+   ⚡ حسابداری سبک داخلی
+   ========================= */
+document.getElementById('mini-form').onsubmit = e=>{
+  e.preventDefault();
+  const desc=document.getElementById('mini-desc').value.trim();
+  const amount=parseFloat(document.getElementById('mini-amount').value);
+  const type=document.getElementById('mini-type').value;
+  if(!amount)return;
+  miniData.push({desc,amount,type,date:new Date().toLocaleDateString('fa-IR')});
+  localStorage.setItem('miniData', JSON.stringify(miniData));
+  renderMini();
+  e.target.reset();
+};
+function renderMini(){
+  const list=document.getElementById('mini-list');
+  list.innerHTML='';
+  miniData.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='item';
+    div.textContent=`${t.date} | ${t.desc} : ${t.amount.toLocaleString()} (${t.type==='income'?'درآمد':'هزینه'})`;
+    list.appendChild(div);
+  });
+}
+renderMini();
+
+/* =========================
+   📊 داشبورد و جمع‌ها
+   ========================= */
+function updateDashboard(){
+  const income=transactions.filter(t=>t.type==='income').reduce((a,b)=>a+b.amount,0);
+  const expense=transactions.filter(t=>t.type==='expense').reduce((a,b)=>a+b.amount,0);
+  const balance=income-expense;
+  document.getElementById('income-total').textContent=income.toLocaleString();
+  document.getElementById('expense-total').textContent=expense.toLocaleString();
+  document.getElementById('balance-total').textContent=balance.toLocaleString();
+  drawChart(income,expense);
+}
+function drawChart(income,expense){
+  const ctx=document.getElementById('yearChart').getContext('2d');
+  if(window.chart) window.chart.destroy();
+  window.chart=new Chart(ctx,{type:'doughnut',data:{labels:['درآمد','هزینه'],datasets:[{data:[income,expense],backgroundColor:['#28a745','#dc3545']}]},options:{plugins:{legend:{position:'bottom'}}}});
+}
+updateDashboard();
+
+/* =========================
+   📦 بکاپ دستی و خودکار
+   ========================= */
+document.getElementById('backup-now').onclick = ()=>doBackup();
+function doBackup(){
+  const data={transactions,miniData,fiscalYear,date:new Date()};
+  localStorage.setItem('backup_'+new Date().getTime(),JSON.stringify(data));
+  alert('بکاپ با موفقیت ذخیره شد ✅');
+}
+setInterval(()=>{
+  const h=new Date().getHours();
+  if(h===2){ doBackup(); }
+},3600000);
+
+/* =========================
+   📅 بستن سال مالی با تأیید کاربر
+   ========================= */
+document.getElementById('close-fiscal-year').onclick = ()=>{
+  const y=fiscalYear.year;
+  if(confirm(`آیا می‌خواهید سال مالی ${y} بسته شود و سال جدید آغاز شود؟`)){
+    localStorage.setItem('archive_'+y,JSON.stringify(transactions));
+    fiscalYear={year:y+1,active:true};
+    transactions=[];
+    localStorage.setItem('transactions','[]');
+    localStorage.setItem('fiscalYear',JSON.stringify(fiscalYear));
+    alert(`سال ${y} بسته شد ✅ و سال ${y+1} آغاز شد.`);
+    renderTransactions();
+    updateDashboard();
+  }
+};
+
+/* =========================
+   🧨 حذف کل داده‌ها
+   ========================= */
+document.getElementById('reset-data').onclick = ()=>{
+  if(confirm('آیا مطمئن هستید؟ تمام داده‌ها حذف خواهند شد.')){
+    localStorage.clear();
+    transactions=[]; miniData=[];
+    renderTransactions(); renderMini(); updateDashboard();
+    alert('تمام داده‌ها پاک شد ❌');
+  }
+};
+  /* =========================
+   📈 گزارش‌ها و نمودار سالانه
+   ========================= */
+function renderReports(){
+  const monthly = {};
+  transactions.forEach(t=>{
+    const m=new Date().getMonth();
+    if(!monthly[m]) monthly[m]={income:0,expense:0};
+    monthly[m][t.type]+=t.amount;
+  });
+  const labels=Object.keys(monthly).map(m=>`ماه ${+m+1}`);
+  const incomeData=Object.values(monthly).map(v=>v.income);
+  const expenseData=Object.values(monthly).map(v=>v.expense);
+  const ctx=document.getElementById('chart').getContext('2d');
+  if(window.chart2) window.chart2.destroy();
+  window.chart2=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'درآمد',data:incomeData,backgroundColor:'#28a745'},
+      {label:'هزینه',data:expenseData,backgroundColor:'#dc3545'}
+    ]},
+    options:{plugins:{legend:{position:'bottom'}}}
+  });
+}
+document.querySelector('[data-page="reports"]').addEventListener('click',renderReports);
+
+/* =========================
+   🎙️ حالت صوتی فارسی (آزمایشی)
+   ========================= */
+const voiceBtn=document.createElement('button');
+voiceBtn.textContent='🎤 شروع ضبط صوتی';
+voiceBtn.style.margin='10px';
+document.getElementById('settings').appendChild(voiceBtn);
+voiceBtn.onclick=()=>{
+  if(!('webkitSpeechRecognition' in window)){alert('مرورگر شما از گفتار پشتیبانی نمی‌کند');return;}
+  const rec=new webkitSpeechRecognition();
+  rec.lang='fa-IR'; rec.start();
+  rec.onresult=e=>{
+    const text=e.results[0][0].transcript;
+    alert('متن دریافت شد: '+text);
+    if(text.includes('درآمد')){
+      const num=parseInt(text.replace(/[^0-9۰-۹]/g,''));
+      if(num) transactions.push({desc:'درآمد صوتی',amount:num,type:'income',date:new Date().toLocaleDateString('fa-IR')});
+    }
+    if(text.includes('هزینه')){
+      const num=parseInt(text.replace(/[^0-9۰-۹]/g,''));
+      if(num) transactions.push({desc:'هزینه صوتی',amount:num,type:'expense',date:new Date().toLocaleDateString('fa-IR')});
+    }
+    localStorage.setItem('transactions',JSON.stringify(transactions));
+    renderTransactions(); updateDashboard();
+  };
+};
+
+/* =========================
+   🌗 تم خودکار بر اساس سیستم
+   ========================= */
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{
+  if(localStorage.getItem('theme')==='auto') applyTheme('auto');
+});
+
+/* =========================
+   🚀 اجرای اولیه
+   ========================= */
+renderTransactions();
+renderMini();
+updateDashboard();
+
+</script>
 </body>
 </html>
