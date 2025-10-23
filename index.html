@@ -1,24 +1,74 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Voice Accountant Pro</title>
-<link rel="stylesheet" href="style.css"/>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0e7c86"/>
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>حسابدار صوتی پرو</title>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;VA Pro&quot;,&quot;short_name&quot;:&quot;VA&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;}">
+<meta name="theme-color" content="#0b9981">
+<!-- Chart.js برای نمودارها -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+@font-face{font-family:IRANSansX;src:local("Tahoma");font-display:swap}
+:root{
+  --bg:#f6f8f9; --card:#fff; --line:#e6eef2; --txt:#111;
+  --muted:#64748b; --pri:#0b9981; --ok:#11825f; --danger:#b33636;
+  --chip:#e7f3f5
+}
+html,body{margin:0;padding:0;font-family:IRANSansX,system-ui;background:var(--bg);color:var(--txt);height:100%}
+.small{font-size:12px;color:var(--muted)}
+.hidden{display:none}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--pri);color:#fff}
+.topbar h1{font-size:18px;margin:0}
+.spacer{flex:1}
+.icon-btn{background:transparent;border:none;color:inherit;font-size:20px;padding:6px}
+.drawer{position:fixed;inset:0 0 0 auto;width:min(320px,86vw);background:#fff;border-left:1px solid var(--line);transform:translateX(100%);transition:.25s;z-index:30;display:flex;flex-direction:column}
+.drawer.show{transform:translateX(0)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--line)}
+.drawer-list{display:flex;flex-direction:column;padding:8px}
+.navlink{padding:10px 12px;margin:4px;background:#fff;border:1px solid var(--line);border-radius:12px;text-align:right}
+.drawer-foot{margin-top:auto;padding:10px;border-top:1px solid var(--line)}
+main{padding:12px}
+.cards{display:grid;gap:8px}
+@media(min-width:900px){.cards{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:899px){.cards{grid-template-columns:repeat(2,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px;margin:6px 0}
+.row{display:flex;gap:8px;align-items:center}
+.grid{display:grid;gap:8px}
+.g2{grid-template-columns:1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.grow{flex:1}
+.col-span2{grid-column:span 2}
+label{font-size:12px;color:var(--muted)}
+input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-family:inherit}
+.btn{border:none;border-radius:10px;padding:10px 14px;background:#e7f3f5;color:#064a50;cursor:pointer}
+.btn.primary{background:var(--pri);color:#fff}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.danger{background:var(--danger);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 10px;border-radius:999px;background:var(--chip);border:1px solid #cfe9ec}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+.kbd{font:12px/1.6 ui-monospace,monospace;background:#111;color:#fff;padding:0 6px;border-radius:6px}
+.badge{background:#eee;padding:2px 6px;border-radius:6px}
+footer{height:40px}
+.theme-parmis{--pri:#0d8;--ok:#0c8;--danger:#e33}
+.theme-dark{--bg:#0b1220;--card:#0e1626;--line:#1e293b;--txt:#e2e8f0;--muted:#94a3b8;--pri:#14b8a6;--ok:#10b981;--danger:#f87171;--chip:#0f1b2a}
+.theme-modern{--pri:#6366f1;--ok:#10b981;--danger:#ef4444}
+</style>
 </head>
-<body data-theme="flat">
-
+<body>
 <header class="topbar">
-  <button id="btnMenu" class="icon-btn" aria-label="menu">☰</button>
+  <button id="btnMenu" class="icon-btn">☰</button>
   <h1>حسابدار صوتی پرو</h1>
+  <span id="periodLabel" class="badge">دوره 1404</span>
   <div class="spacer"></div>
-  <button id="btnVoice" class="icon-btn" title="حالت ویس">🎙️</button>
+  <button id="btnVoice" class="icon-btn" title="هوش صوتی">🎤</button>
+  <button id="btnBackup" class="icon-btn" title="پشتیبان‌گیری">💾</button>
 </header>
 
+<!-- منوی کناری -->
 <aside id="drawer" class="drawer" aria-hidden="true">
   <div class="drawer-head">
     <strong>منو</strong>
@@ -26,55 +76,70 @@
   </div>
   <nav class="drawer-list">
     <button class="navlink" data-tab="dashboard">داشبورد</button>
-    <button class="navlink" data-tab="transactions">تراکنش‌ها</button>
+    <button class="navlink" data-tab="tx">تراکنش‌ها</button>
     <button class="navlink" data-tab="accounts">حساب‌ها</button>
     <button class="navlink" data-tab="cheques">چک‌ها</button>
-    <button class="navlink" data-tab="inst">اقساط</button>
+    <button class="navlink" data-tab="installments">اقساط</button>
     <button class="navlink" data-tab="building">مدیریت ساختمان</button>
     <button class="navlink" data-tab="reports">گزارش‌ها</button>
+    <button class="navlink" data-tab="tools">ابزارها</button>
     <button class="navlink" data-tab="settings">تنظیمات</button>
   </nav>
-  <footer class="drawer-foot small">دوره جاری: <span id="periodLabel">1404</span></footer>
+  <div class="drawer-foot small">
+    <div class="row">
+      <label class="small">پروفایل:</label>
+      <select id="profileSel" class="grow">
+        <option value="pro">حسابداری کامل</option>
+        <option value="lite">حسابداری سبک (ساختمان/شخصی)</option>
+      </select>
+    </div>
+  </div>
 </aside>
 
-<main id="views">
-
-  <section id="view-dashboard" class="view active">
+<main>
+  <!-- داشبورد -->
+  <section id="view-dashboard" class="view">
     <div class="cards">
-      <div class="card"><div>موجودی خالص</div><strong id="v-net">—</strong></div>
-      <div class="card"><div>درآمد امروز</div><strong id="v-inc">—</strong></div>
-      <div class="card"><div>هزینه امروز</div><strong id="v-exp">—</strong></div>
+      <div class="card">
+        <h3>خلاصه سریع</h3>
+        <div class="list">
+          <li><span>موجودی خالص</span><strong id="sumNet">–</strong></li>
+          <li><span>درآمد امروز</span><strong id="sumIncToday">–</strong></li>
+          <li><span>هزینه امروز</span><strong id="sumExpToday">–</strong></li>
+        </div>
+        <div class="chips">
+          <button class="chip" id="btnAddIncome">+ درآمد</button>
+          <button class="chip" id="btnAddExpense">+ هزینه</button>
+          <button class="chip" id="btnTransfer">↔ انتقال</button>
+          <button class="chip" id="btnImportSMS">افزودن از پیامک بانکی</button>
+        </div>
+      </div>
+      <div class="card col-span2">
+        <h3>نمودار درآمد/هزینه (۳ ماه اخیر)</h3>
+        <canvas id="chartIE" height="110"></canvas>
+      </div>
+      <div class="card">
+        <h3>سهم حساب‌ها</h3>
+        <canvas id="chartAccounts" height="110"></canvas>
+      </div>
     </div>
 
-    <div class="actions">
-      <button class="btn primary" id="quickIncome">+ درآمد</button>
-      <button class="btn danger" id="quickExpense">+ هزینه</button>
-      <button class="btn" id="quickTransfer">↔ انتقال</button>
-      <button class="btn" id="quickTemplate">☆ الگو</button>
-    </div>
-
-    <div class="panel">
-      <h3>تراکنش‌های اخیر</h3>
-      <ul id="recentList" class="list"></ul>
-    </div>
-
-    <div class="panel charts">
-      <h3>نمودار هزینه/درآمد (سه ماه اخیر)</h3>
-      <canvas id="chartIncomeExpense"></canvas>
-    </div>
-  </section>
-
-  <section id="view-transactions" class="view">
     <div class="panel">
       <h3>ثبت تراکنش</h3>
       <div class="grid g2">
-        <div><label>مبلغ</label><div class="amount-row"><input id="txAmount" inputmode="numeric" placeholder="مثلاً 300000"/><button id="btnCalc" class="icon-btn">🧮</button></div></div>
+        <div>
+          <label>مبلغ</label>
+          <div class="row">
+            <input id="txAmount" placeholder="مثلاً 3000000" inputmode="numeric">
+            <button id="btnCalc" class="btn">🧮</button>
+          </div>
+        </div>
         <div>
           <label>نوع پرداخت</label>
           <select id="txMethod">
             <option value="cash">نقدی</option>
             <option value="cheque">چکی</option>
-            <option value="installment">قسطی</option>
+            <option value="inst">قسطی</option>
           </select>
         </div>
         <div>
@@ -87,141 +152,156 @@
         </div>
         <div class="col-span2">
           <label>توضیح</label>
-          <input id="txNote" placeholder="مثلاً خرید سوپر / دریافت از آقای ..."/>
+          <input id="txNote" placeholder="مثلاً خرید سوپر / دریافت از ...">
         </div>
       </div>
-      <div class="row">
-        <button id="btnAddExpense" class="btn danger">ثبت هزینه</button>
-        <button id="btnAddIncome"  class="btn primary">ثبت درآمد</button>
-        <button id="btnAddTransfer" class="btn">ثبت انتقال</button>
-        <button id="btnFromSMS" class="btn">افزودن از پیامک بانکی</button>
+      <div class="row" style="margin-top:8px">
+        <button id="btnSaveExpense" class="btn danger">ثبت هزینه</button>
+        <button id="btnSaveIncome" class="btn ok">ثبت درآمد</button>
+        <button id="btnSaveTransfer" class="btn">ثبت انتقال</button>
+        <button id="btnVoiceExplain" class="btn">🎙️ توضیح صوتی</button>
       </div>
     </div>
 
     <div class="panel">
-      <h3>لیست تراکنش‌ها</h3>
-      <div class="row">
-        <input id="txSearch" class="grow" placeholder="جستجو: متن، مبلغ، حساب..."/>
-        <select id="txFilterPeriod"></select>
-      </div>
-      <ul id="txList" class="list"></ul>
+      <h3>تراکنش‌های اخیر</h3>
+      <ul id="recentList" class="list"></ul>
     </div>
   </section>
 
-  <section id="view-accounts" class="view">
+  <!-- سایر نماها: تراکنش‌ها/حساب‌ها/چک‌ها/اقساط/ساختمان/گزارش/ابزار/تنظیمات -->
+  <section id="view-tx" class="view hidden">
+    <div class="row" style="margin-bottom:8px">
+      <input id="txSearch" class="grow" placeholder="جستجو...">
+      <select id="txFilter">
+        <option value="all">همه</option>
+        <option value="inc">دریافت</option>
+        <option value="exp">پرداخت</option>
+        <option value="tr">انتقال</option>
+      </select>
+    </div>
+    <ul id="txList" class="list"></ul>
+  </section>
+
+  <section id="view-accounts" class="view hidden">
+    <div class="row">
+      <button id="btnAccAdd" class="btn ok">+ حساب جدید</button>
+      <div class="spacer"></div>
+      <button id="btnAccTree" class="btn">درخت سرفصل/معین/تفصیلی</button>
+    </div>
+    <ul id="accList" class="list"></ul>
+    <div id="accTreePanel" class="panel hidden">
+      <h3>درخت حساب‌ها</h3>
+      <ul id="accTree" class="list"></ul>
+    </div>
+  </section>
+
+  <section id="view-cheques" class="view hidden">
+    <div class="row">
+      <button id="btnAddCheque" class="btn ok">+ چک</button>
+      <select id="chKind" class="grow">
+        <option value="recv">اسناد دریافتی</option>
+        <option value="pay">اسناد پرداختنی</option>
+      </select>
+    </div>
+    <ul id="chList" class="list"></ul>
+  </section>
+
+  <section id="view-installments" class="view hidden">
+    <div class="grid g4">
+      <div><label>عنوان/وام</label><input id="insNote" placeholder="وام خودرو"></div>
+      <div><label>تعداد</label><input id="insCount" inputmode="numeric" value="12"></div>
+      <div><label>مبلغ هر قسط</label><input id="insPer" inputmode="numeric"></div>
+      <div><label>نوبت بعدی</label><input id="insNext" type="date"></div>
+    </div>
+    <div class="row" style="margin:8px 0">
+      <button id="btnAddInst" class="btn ok">+ افزودن قسط</button>
+    </div>
+    <ul id="insList" class="list"></ul>
+  </section>
+
+  <section id="view-building" class="view hidden">
+    <div class="row">
+      <select id="bSelect" class="grow"></select>
+      <button id="btnBAdd" class="btn ok">+ ساختمان/مجتمع</button>
+    </div>
+    <div class="grid g4">
+      <div class="col-span2"><label>واحد</label><input id="bUnitName" placeholder="واحد ۷"></div>
+      <div><label>سهم (%)</label><input id="bUnitShare" inputmode="numeric" value="0"></div>
+      <div><label>&nbsp;</label><button id="btnBAddUnit" class="btn">+ افزودن واحد</button></div>
+    </div>
     <div class="panel">
-      <h3>حساب‌ها (سرفصل/معین/تفصیلی)</h3>
-      <div class="row">
-        <input id="accName" placeholder="نام حساب"/>
-        <select id="accLevel">
-          <option value="1">سرفصل</option>
-          <option value="2">معین</option>
-          <option value="3">تفصیلی</option>
+      <h3>واحدها</h3>
+      <ul id="bUnits" class="list"></ul>
+    </div>
+    <div class="panel">
+      <h3>تقسیم هزینه مشترک</h3>
+      <div class="grid g4">
+        <div class="col-span2"><label>شرح هزینه</label><input id="bCostNote" placeholder="نظافت/آبونمان/نگهبانی"></div>
+        <div><label>مبلغ کل</label><input id="bCostTotal" inputmode="numeric"></div>
+        <div><label>&nbsp;</label><button id="btnBSplit" class="btn">تقسیم بین واحدها</button></div>
+      </div>
+      <ul id="bSplitList" class="list"></ul>
+    </div>
+  </section>
+
+  <section id="view-reports" class="view hidden">
+    <div class="row">
+      <button id="btnExportJSON" class="btn">Export JSON</button>
+      <button id="btnExportCSV" class="btn">Export CSV</button>
+      <button id="btnExportPDF" class="btn">Export PDF</button>
+    </div>
+    <div id="reportSummary" class="panel small">—</div>
+    <div class="card">
+      <h3>نمودار تفکیکی سرفصل‌ها</h3>
+      <canvas id="chartByAccount" height="150"></canvas>
+    </div>
+  </section>
+
+  <section id="view-tools" class="view hidden">
+    <div class="chips">
+      <button id="toolCalc" class="chip">🧮 ماشین‌حساب</button>
+      <button id="toolFx" class="chip">💱 مبدل ارز</button>
+      <button id="toolNote" class="chip">📝 دفترچه یادداشت</button>
+    </div>
+    <div id="toolsArea" class="panel small">ابزار را انتخاب کنید…</div>
+  </section>
+
+  <section id="view-settings" class="view hidden">
+    <div class="grid g4">
+      <div><label>تم</label>
+        <select id="themeSel">
+          <option value="">ساده</option>
+          <option value="theme-parmis">پارمیس</option>
+          <option value="theme-modern">مدرن</option>
+          <option value="theme-dark">تیره</option>
         </select>
-        <select id="accParent"></select>
-        <button id="btnAddAccount" class="btn primary">+ افزودن</button>
       </div>
-      <ul id="accTree" class="tree"></ul>
-    </div>
-  </section>
-
-  <section id="view-cheques" class="view">
-    <div class="panel">
-      <h3>چک‌ها</h3>
-      <div class="row">
-        <select id="chKind">
-          <option value="receive">دریافتی</option>
-          <option value="pay">پرداختی</option>
-        </select>
-        <input id="chBank" placeholder="بانک"/>
-        <input id="chNumber" placeholder="شماره چک"/>
-        <input id="chAmount" inputmode="numeric" placeholder="مبلغ"/>
-        <input id="chDue" type="date"/>
-        <input id="chParty" placeholder="طرف حساب"/>
-        <button id="btnAddCheque" class="btn primary">+ ثبت چک</button>
+      <div><label>حالت صوتی</label>
+        <select id="voiceMode"><option value="on">فعال</option><option value="off">غیرفعال</option></select>
       </div>
-      <h4>باز</h4>
-      <ul id="chOpen" class="list small"></ul>
-      <h4>تسویه‌شده</h4>
-      <ul id="chClosed" class="list small"></ul>
-    </div>
-  </section>
-
-  <section id="view-inst" class="view">
-    <div class="panel">
-      <h3>اقساط</h3>
-      <div class="row">
-        <input id="insNote" placeholder="عنوان قسط/وام"/>
-        <input id="insPer" inputmode="numeric" placeholder="مبلغ هر قسط"/>
-        <input id="insCount" inputmode="numeric" placeholder="تعداد"/>
-        <input id="insNext" type="date"/>
-        <button id="btnAddInst" class="btn primary">+ افزودن</button>
+      <div class="col-span2"><label>هشدارها</label>
+        <div class="row">
+          <label><input type="checkbox" id="notifyDue"> اعلان موعد چک/قسط</label>
+        </div>
       </div>
-      <ul id="insList" class="list"></ul>
-    </div>
-  </section>
-
-  <section id="view-building" class="view">
-    <div class="panel">
-      <h3>مدیریت ساختمان</h3>
-      <div class="row">
-        <input id="bName" placeholder="نام ساختمان/مجتمع"/>
-        <button id="btnAddBuilding" class="btn">+ افزودن</button>
+      <div class="col-span2"><label>امنیت</label>
+        <div class="grid g2">
+          <div><input id="pinInput" placeholder="PIN 4-6 رقمی"></div>
+          <div><button id="btnSetPIN" class="btn">ثبت/تغییر PIN</button></div>
+        </div>
       </div>
-      <div class="row">
-        <select id="bSelect"></select>
-        <input id="unitName" placeholder="واحد (مثلاً 7)"/>
-        <input id="unitShare" inputmode="numeric" placeholder="سهم (%)"/>
-        <button id="btnAddUnit" class="btn">+ واحد</button>
+      <div class="col-span2"><label>رمزگذاری پشتیبان‌ها (AES)</label>
+        <div class="grid g2">
+          <input id="encKey" placeholder="کلید محرمانه (به خاطر بسپار)">
+          <button id="btnSetEnc" class="btn">ثبت کلید</button>
+        </div>
       </div>
-      <div class="row">
-        <input id="feeTitle" placeholder="هزینه مشترک (مثلاً نظافت)"/>
-        <input id="feeAmount" inputmode="numeric" placeholder="مبلغ کل"/>
-        <button id="btnSplitFee" class="btn primary">تقسیم بین واحدها</button>
-      </div>
-      <ul id="unitList" class="list small"></ul>
-    </div>
-  </section>
-
-  <section id="view-reports" class="view">
-    <div class="panel">
-      <h3>گزارش‌ها</h3>
-      <div id="reportSummary" class="cards"></div>
-      <div class="row">
-        <button id="btnExportJSON" class="btn">Export JSON</button>
-        <button id="btnExportCSV" class="btn">Export CSV</button>
-        <button id="btnExportPDF" class="btn">Export PDF</button>
-      </div>
-      <div class="panel">
-        <h4>نمودار تفکیکی (سرفصل‌ها)</h4>
-        <canvas id="chartByAccount"></canvas>
-      </div>
-    </div>
-  </section>
-
-  <section id="view-settings" class="view">
-    <div class="panel">
-      <h3>ظاهر</h3>
-      <div class="row wrap">
-        <button class="chip theme" data-theme="flat">سبز مدرن</button>
-        <button class="chip theme" data-theme="parmis">بنفش پارمیس</button>
-        <button class="chip theme" data-theme="neo">نئومورفیک</button>
-        <button class="chip theme" data-theme="dark">تیره</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>حالت کار</h3>
-      <label class="switch">
-        <input type="checkbox" id="toggleVoice"/>
-        <span>هوش صوتی فعال باشد</span>
-      </label>
     </div>
 
     <div class="panel">
       <h3>دوره مالی</h3>
       <div class="row">
-        <input id="periodInput" placeholder="مثلاً 1404"/>
         <button id="btnSetPeriod" class="btn">تنظیم دوره</button>
         <button id="btnClosePeriod" class="btn danger">بستن دوره</button>
       </div>
@@ -229,502 +309,582 @@
 
     <div class="panel">
       <h3>پشتیبان‌گیری و همگام‌سازی</h3>
-      <label class="switch"><input type="checkbox" id="bkDaily" checked/><span>بکاپ روزانه ۲۳:۵۹</span></label>
-      <label class="switch"><input type="checkbox" id="bkOnExit" checked/><span>بکاپ هنگام خروج</span></label>
-      <label class="switch"><input type="checkbox" id="bkMonthly" checked/><span>بکاپ ماهانه (دو ماه آخر)</span></label>
-
-      <div class="row">
-        <input id="cfUrl" placeholder="Cloudflare Worker URL (اختیاری)"/>
-        <input id="cfSecret" placeholder="SECRET_KEY Base64 (اختیاری)"/>
+      <div class="row small">
+        <label><input type="checkbox" id="bkDaily"> بکاپ روزانه 23:59</label>
+        <label><input type="checkbox" id="bkExit"> بکاپ هنگام خروج</label>
+        <label><input type="checkbox" id="bkMonthly"> بکاپ ماهانه (دو ماه آخر)</label>
       </div>
-
-      <div class="row">
-        <button id="btnBackupNow" class="btn primary">ذخیره بکاپ دستی</button>
+      <div class="grid g4">
+        <div class="col-span2"><input id="cfUrl" placeholder="Cloudflare Worker URL (اختیاری)"></div>
+        <div class="col-span2"><input id="cfSecret" placeholder="SECRET_KEY Base64 (اختیاری)"></div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button id="btnBackupNow" class="btn ok">ذخیره بکاپ دستی</button>
+        <input id="fileRestore" type="file" class="hidden" accept=".json,.zip,application/json">
         <button id="btnRestoreFile" class="btn">بازیابی از فایل</button>
-        <input type="file" id="fileRestore" accept=".json" class="hidden"/>
       </div>
+      <div id="bkLog" class="small"></div>
     </div>
 
     <div class="panel">
-      <h3>امنیت</h3>
-      <div class="row">
-        <input id="pinInput" placeholder="PIN چهار رقمی"/>
-        <button id="btnSetPIN" class="btn">ثبت/تغییر PIN</button>
-        <button id="btnLock" class="btn danger">قفل کن</button>
-      </div>
-      <div class="row">
-        <button id="btnRegisterPasskey" class="btn">فعال‌سازی Face ID (Passkey)</button>
-        <button id="btnUnlockPasskey" class="btn">بازکردن با Passkey</button>
-      </div>
+      <h3>الگوهای پیامکی شناخته‌شده</h3>
+      <div id="smsPatternsBox" class="small">هنوز الگویی ذخیره نشده</div>
     </div>
   </section>
-
 </main>
+<footer></footer>
+<script>
+/* ادامه کد در بخش ۲/۳ و ۳/۳ می‌آید */
+</script>
+/************ داده‌ها و ذخیره‌سازی ************/
+const DBKEY='VA_DB_v3';
+const DEF_PERIOD='1404';
+const $=q=>document.querySelector(q);
+const $$=q=>document.querySelectorAll(q);
+const fmt=n=>Number(n||0).toLocaleString('fa-IR');
+const todayKey=()=>new Date().toISOString().slice(0,10);
+const monthKey=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const cryptoRand = ()=> (crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));
 
-<!-- مودال ماشین‌حساب -->
-<div id="calcModal" class="modal">
-  <div class="modal-box">
-    <div class="calc">
-      <input id="calcExpr" placeholder="مثلاً 120000*0.9" />
-      <div class="grid g4">
-        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="/">÷</button>
-        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="*">×</button>
-        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="-">−</button>
-        <button data-k="0">0</button><button data-k=".">.</button><button id="calcClr">C</button><button data-k="+">+</button>
-      </div>
-      <div class="row">
-        <button id="calcOk" class="btn primary">ثبت</button>
-        <button id="calcClose" class="btn">بستن</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- مودال پیامک -->
-<div id="smsModal" class="modal"><div class="modal-box">
-  <h3>افزودن از پیامک بانکی</h3>
-  <textarea id="smsText" rows="6" placeholder="متن پیامک بانک را اینجا بچسبان..."></textarea>
-  <div class="row">
-    <button id="smsParse" class="btn primary">تجزیه و ثبت</button>
-    <button id="smsCancel" class="btn">انصراف</button>
-  </div>
-</div></div>
-
-<script src="main.js"></script>
-</body>
-</html>
-@font-face{font-family:IRANSansX;src:local("Tahoma");font-display:swap}
-:root{
-  --bg:#f6f8f9;--card:#fff;--line:#e6eef2;--txt:#111;--muted:#64748b;
-  --pri:#0e7c86;--ok:#11825f;--danger:#b33636;--chip:#e7f3f5
-}
-html,body{margin:0;padding:0;font-family:IRANSansX,system-ui;background:var(--bg);color:var(--txt);height:100%}
-.small{font-size:12px;color:var(--muted)} .hidden{display:none}
-.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--pri);color:#fff}
-.topbar h1{font-size:18px;margin:0} .spacer{flex:1}
-.icon-btn{background:transparent;border:none;color:inherit;font-size:20px}
-.drawer{position:fixed;inset:0 0 0 auto;width:min(320px,86vw);background:#fff;border-left:1px solid var(--line);transform:translateX(100%);transition:.2s;z-index:30;display:flex;flex-direction:column}
-.drawer.show{transform:translateX(0)}
-.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--line)}
-.drawer-list{display:flex;flex-direction:column;padding:8px}
-.navlink{padding:10px 12px;margin:4px;background:#fff;border:1px solid var(--line);border-radius:10px;text-align:right}
-.drawer-foot{margin-top:auto;padding:10px;border-top:1px solid var(--line)}
-main{padding:12px}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.btn{border:none;border-radius:10px;padding:10px 14px;background:#e7f3f5;color:#064a50}
-.btn.primary{background:var(--pri);color:#fff}
-.btn.danger{background:var(--danger);color:#fff}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
-.list{list-style:none;margin:0;padding:0}
-.list li{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:10px;margin:6px 0;padding:10px}
-.row{display:flex;gap:8px;align-items:center}
-.grid{display:grid;gap:8px}.g2{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
-.grow{flex:1}
-.col-span2{grid-column:span 2}
-label{font-size:12px;color:var(--muted)}
-input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.tree{list-style:none;padding:0}
-.tree li{border:1px dashed var(--line);border-radius:10px;margin:6px 0;padding:8px}
-.switch{display:flex;align-items:center;gap:8px}
-.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px}
-
-/* modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:40}
-.modal.show{display:flex}
-.modal-box{width:min(720px,96vw);background:#fff;border-radius:14px;padding:14px}
-
-/* calc */
-.calc input{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
-
-/* charts */
-.charts canvas{background:#fff;border-radius:10px;padding:10px;border:1px solid var(--line)}
-
-/* themes */
-[data-theme="flat"]{--pri:#0e7c86}
-[data-theme="parmis"]{--pri:#6a3fb5}
-[data-theme="dark"]{--bg:#0b0e12;--card:#12161c;--txt:#e8eef3;--line:#223;--pri:#14b8a6;--chip:#13222a}
-[data-theme="neo"]{--bg:#e9eef5;--card:#eef3f9;--line:#dfe7f0;--pri:#3b82f6}
-/* Voice Accountant Pro – main.js (کامل) */
-/* نسخه: فاز۲ پرو — شامل: SMS-learning, charts, AES backup, Cloudflare, Passkey, daily/monthly/exit backups */
-
-// ---------- کمک‌ها ----------
-const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
-const fmt = n => (n||0).toLocaleString('fa-IR') + ' ت';
-const now = () => new Date();
-const todayKey = () => new Date().toISOString().slice(0,10);
-const monthKey = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; };
-
-// ---------- DB (localStorage seed) ----------
-const DBKEY='va-pro-db-v2';
-function loadDB(){ const r=localStorage.getItem(DBKEY); if(r) return JSON.parse(r);
-  const seed={
-    settings:{theme:'flat', voice:false, period:'1404', bkDaily:true, bkOnExit:true, bkMonthly:true, pin:'', cfUrl:'', cfSecret:''},
-    accounts:[
-      {id:'1', name:'دارایی‌ها', level:1},
-      {id:'1.1', name:'بانک‌ها', level:2, parent:'1'},
-      {id:'1.1.1', name:'بانک ملت', level:3, parent:'1.1'},
-      {id:'1.2', name:'صندوق', level:2, parent:'1'},
-      {id:'5', name:'هزینه‌ها', level:1},
-      {id:'5.1', name:'خواروبار', level:2, parent:'5'},
-      {id:'7', name:'درآمدها', level:1}
-    ],
-    tx:[], cheques:[], inst:[], building:{items:[], units:[]},
-    periods:['1404'], backups:{daily:[], monthly:[], exit:[]},
-    smsPatterns:{} // sender/keywords -> category mapping for learning
-  };
-  localStorage.setItem(DBKEY, JSON.stringify(seed)); return seed;
-}
 let DB = loadDB();
-function saveDB(){ localStorage.setItem(DBKEY, JSON.stringify(DB)); }
 
-// ---------- UI: theme & nav ----------
-function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); DB.settings.theme=t; saveDB(); }
-applyTheme(DB.settings.theme || 'flat'); $('#periodLabel').textContent=DB.settings.period||'1404';
+/* اسکیمای اولیه */
+function seedDB(){
+  return {
+    version:3,
+    settings:{
+      theme:'',
+      voice:'on',
+      period:DEF_PERIOD,
+      notify:true,
+      bkDaily:false, bkExit:true, bkMonthly:true,
+      cfUrl:'', cfSecret:'',
+      pin:'',
+      encKey:'', // base64 کلید مشتق شده
+      profile:'pro'
+    },
+    accounts:[
+      {id:'1', level:1, name:'درآمدها'},
+      {id:'2', level:1, name:'هزینه‌ها'},
+      {id:'3', level:1, name:'صندوق'},
+      {id:'4', level:1, name:'بانک‌ها'},
+      {id:'5', level:1, name:'اشخاص'},
+      {id:'3.1', level:2, parent:'3', name:'صندوق دستی'},
+      {id:'4.1', level:2, parent:'4', name:'بانک سامان'},
+      {id:'2.1', level:2, parent:'2', name:'خوراک'},
+      {id:'1.1', level:2, parent:'1', name:'فروش'}
+    ],
+    tx:[], // {id,date,amount,from,to,method,note}
+    cheques:[], // {id,kind:recv|pay, bank, number, amount, due, party, status:'inHand'|'paid'|'returned', period}
+    inst:[], // {id,note,per,count,paid,next,done,period}
+    building:{ items:[], units:[] }, // items: {id,name} , units:{id,bid,name,share}
+    periods:{ [DEF_PERIOD]:true },
+    backups:{daily:[], monthly:[], exit:[]},
+    smsPatterns:{} // {'SENDER|کلمه': {accTo:'2.1', sign:-1}}  sign: 1=income ,-1=expense
+  };
+}
 
-$('#btnMenu').onclick=()=>$('#drawer').classList.add('show');
-$('#btnCloseDrawer').onclick=()=>$('#drawer').classList.remove('show');
-$$('.navlink').forEach(b=>b.onclick=()=>{
-  $$('.view').forEach(v=>v.classList.remove('active'));
-  $('#view-'+b.dataset.tab).classList.add('active');
-  $('#drawer').classList.remove('show');
-  renderAll();
-});
+/* رمزگذاری AES اختیاری برای ذخیره محلی و بکاپ */
+async function deriveKey(pass){
+  const enc = new TextEncoder().encode(pass);
+  const base = await crypto.subtle.importKey('raw', enc, 'PBKDF2',false, ['deriveKey']);
+  return crypto.subtle.exportKey('raw', await crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt:new TextEncoder().encode('va_salt'), iterations:100000, hash:'SHA-256'},
+    base,{name:'AES-GCM', length:256},true,['encrypt','decrypt']
+  )).then(b=>btoa(String.fromCharCode(...new Uint8Array(b))));
+}
+async function aesEncrypt(obj, b64Key){
+  if(!b64Key) return {plain:true, data:obj};
+  const keyRaw = Uint8Array.from(atob(b64Key),c=>c.charCodeAt(0));
+  const key = await crypto.subtle.importKey('raw', keyRaw,'AES-GCM',false,['encrypt']);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM',iv}, key, new TextEncoder().encode(JSON.stringify(obj)));
+  return {plain:false, iv:Array.from(iv), blob:btoa(String.fromCharCode(...new Uint8Array(ct)))};
+}
+async function aesDecrypt(pack, b64Key){
+  if(pack.plain) return pack.data;
+  if(!b64Key) throw 'no key';
+  const keyRaw = Uint8Array.from(atob(b64Key),c=>c.charCodeAt(0));
+  const key = await crypto.subtle.importKey('raw', keyRaw,'AES-GCM',false,['decrypt']);
+  const iv = new Uint8Array(pack.iv);
+  const ct = Uint8Array.from(atob(pack.blob),c=>c.charCodeAt(0));
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM',iv}, key, ct);
+  return JSON.parse(new TextDecoder().decode(pt));
+}
 
-// ---------- accounts UI ----------
-function renderAccOptions(){
-  const selFrom = $('#txFrom'), selTo = $('#txTo'), selParent = $('#accParent');
-  selFrom.innerHTML=''; selTo.innerHTML=''; selParent.innerHTML='<option value="">بدون والد</option>';
+/* بارگذاری/ذخیره */
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(DBKEY);
+    if(!raw) return seedDB();
+    const pack = JSON.parse(raw);
+    if(pack && (pack.plain!==undefined || pack.blob)) {
+      // نسخه رمزگذاری‌شده
+      return pack; // فعلاً بدون کلید – بعد از وارد کردن کلید، دیکریپت می‌شود.
+    }
+    return JSON.parse(raw);
+  }catch(e){ console.error(e); return seedDB(); }
+}
+async function getDB(){
+  // اگر رمزگذاری فعال است و DB به شکل pack ذخیره شده
+  if(DB && DB.plain===false || DB.blob){
+    try{
+      const dec = await aesDecrypt(DB, (DB.settings?DB.settings.encKey:localStorage.getItem('VA_encKey')) || '');
+      DB = dec;
+      return DB;
+    }catch(e){
+      alert('برای خواندن داده‌ها، ابتدا از تنظیمات «کلید رمزگذاری» را وارد کنید.');
+      throw e;
+    }
+  }
+  return DB;
+}
+function savePlain(obj){ localStorage.setItem(DBKEY, JSON.stringify(obj)); }
+async function saveDB(){
+  // اگر encKey تعریف شده، به صورت رمز ذخیره کن
+  const encKey = DB.settings.encKey || localStorage.getItem('VA_encKey') || '';
+  const pack = await aesEncrypt(DB, encKey);
+  localStorage.setItem(DBKEY, JSON.stringify(pack));
+}
+
+/************ ابزارهای عمومی ************/
+function setTheme(t){ document.body.classList.remove('theme-parmis','theme-modern','theme-dark'); if(t) document.body.classList.add(t); DB.settings.theme=t; saveDB(); }
+function setVoiceMode(m){ DB.settings.voice=m; saveDB(); }
+function setProfile(p){ DB.settings.profile=p; $('#profileSel').value=p; saveDB(); renderAll(); }
+function ensureAccountOptions(){
+  const fromSel=$('#txFrom'), toSel=$('#txTo');
+  fromSel.innerHTML=''; toSel.innerHTML='';
   DB.accounts.forEach(a=>{
-    const o1=document.createElement('option'); o1.value=a.id; o1.textContent=`${a.id} — ${a.name}`; selFrom.appendChild(o1);
-    const o2=document.createElement('option'); o2.value=a.id; o2.textContent=`${a.id} — ${a.name}`; selTo.appendChild(o2);
-    if(a.level<3){ const op=document.createElement('option'); op.value=a.id; op.textContent=`${a.id} — ${a.name}`; selParent.appendChild(op); }
+    const o1=document.createElement('option'); o1.value=a.id; o1.textContent=`${a.id} — ${a.name}`; fromSel.appendChild(o1);
+    const o2=document.createElement('option'); o2.value=a.id; o2.textContent=`${a.id} — ${a.name}`; toSel.appendChild(o2);
+  });
+  // پیش‌فرض
+  fromSel.value='3.1'; toSel.value='2.1';
+}
+function addTx({amount,from,to,method,note,sign}){
+  const id=cryptoRand();
+  DB.tx.push({id,date:new Date().toISOString(),amount:sign>0?Math.abs(+amount):-Math.abs(+amount),from,to,method,note});
+}
+function removeTx(id){ DB.tx=DB.tx.filter(t=>t.id!==id); }
+
+/************ بکاپ ************/
+function logBk(msg){ const el=$('#bkLog'); el.textContent='• '+msg; setTimeout(()=>el.textContent='',4000); }
+function makePack(){ return {date:new Date().toISOString(), data:DB}; }
+async function saveBackupLocal(kind){
+  const pack = makePack();
+  // به صورت فایل دانلود (iCloud/Files کاربر ذخیره می‌کند)
+  const blob = new Blob([JSON.stringify(pack)], {type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  const name = kind==='monthly' ? `VA_Backup_Monthly_${monthKey()}` :
+               kind==='exit' ? `VA_Backup_Exit_${todayKey()}` :
+               `VA_Backup_Daily_${todayKey()}`;
+  a.download = name+'.json'; a.click();
+  DB.backups[kind] = DB.backups[kind]||[];
+  DB.backups[kind].push({name, ts:Date.now()});
+  // نگهداری: روزانه فقط ۷ تا، ماهانه فقط ۲ تا
+  if(kind==='daily' && DB.backups.daily.length>7) DB.backups.daily.splice(0, DB.backups.daily.length-7);
+  if(kind==='monthly' && DB.backups.monthly.length>2) DB.backups.monthly.splice(0, DB.backups.monthly.length-2);
+  await saveDB(); logBk('Backup saved: '+name);
+}
+async function sendBackupToCloudflare(pack){
+  const url = $('#cfUrl').value.trim() || DB.settings.cfUrl || '';
+  const secret = $('#cfSecret').value.trim() || DB.settings.cfSecret || '';
+  if(!url) return {ok:false, error:'no_url'};
+  try{
+    const res = await fetch(url+'/backup',{method:'POST',headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId:'me', period:DB.settings.period, dataJson:pack})});
+    const j = await res.json(); return j;
+  }catch(e){ return {ok:false, error:String(e)}; }
+}
+function scheduleBackups(){
+  setInterval(async ()=>{
+    const d=new Date(); const hh=d.getHours(), mm=d.getMinutes(), day=d.getDate();
+    if(DB.settings.bkDaily && hh===23 && mm===59) await saveBackupLocal('daily');
+    if(DB.settings.bkMonthly && day===1 && hh===0 && mm===0) await saveBackupLocal('monthly');
+  }, 60000);
+  document.addEventListener('visibilitychange', async ()=>{
+    if(document.visibilityState==='hidden' && DB.settings.bkExit) await saveBackupLocal('exit');
   });
 }
-function buildTreeMap(){
-  const map={}; DB.accounts.forEach(a=>map[a.id]={...a, children:[]});
-  DB.accounts.forEach(a=>{ if(a.parent && map[a.parent]) map[a.parent].children.push(map[a.id]); });
-  return Object.values(map).filter(a=>!a.parent);
-}
-function renderAccTree(){
-  const roots = buildTreeMap();
-  const ul = $('#accTree'); ul.innerHTML='';
-  function make(node){
-    const li=document.createElement('li');
-    li.innerHTML = `<div class="row"><strong>${node.id}</strong> — ${node.name} <span class="small">[سطح ${node.level}]</span><span class="spacer"></span><button class="btn" data-edit="${node.id}">ویرایش</button><button class="btn danger" data-del="${node.id}">حذف</button></div>`;
-    if(node.children.length){ const sub=document.createElement('ul'); sub.className='tree'; node.children.forEach(c=>sub.insertAdjacentHTML('beforeend', make(c))); li.appendChild(sub); }
-    return li.outerHTML;
-  }
-  roots.forEach(r=>ul.insertAdjacentHTML('beforeend', make(r)));
-  ul.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ const id=b.dataset.del; if(DB.accounts.some(x=>x.parent===id)) return alert('ابتدا زیرحساب‌ها را حذف کن'); DB.accounts=DB.accounts.filter(x=>x.id!==id); saveDB(); renderAccTree(); renderAccOptions(); });
-  ul.querySelectorAll('[data-edit]').forEach(b=>b.onclick(()=>{}));
-}
-$('#btnAddAccount').onclick=()=>{
-  const name=$('#accName').value.trim(); if(!name) return; const level=+$('#accLevel').value; const parent=$('#accParent').value||null;
-  // generate id: parent.random or number
-  const id = parent ? `${parent}.${(Math.random()*9000|1000)}` : `${(Math.random()*9000|1000)}`;
-  DB.accounts.push({id,name,level,parent}); saveDB(); $('#accName').value=''; renderAccTree(); renderAccOptions();
-};
 
-// ---------- transactions ----------
-function addTx({amount, from, to, note, method='cash'}){
-  DB.tx.push({id:crypto.randomUUID(), date:new Date().toISOString(), amount, from, to, note, method, period:DB.settings.period});
+/************ لاگین PIN (ساده) ************/
+function askPINIfSet(){
+  const pin=DB.settings.pin||'';
+  if(!pin) return true;
+  let t=prompt('PIN را وارد کنید:');
+  if(t===pin) return true;
+  alert('نادرست'); return askPINIfSet();
+}
+
+/************ مقداردهی اولیه ************/
+async function init(){
+  // اگر DB رمزدار در localStorage بود، ابتدا کلید را از تنظیمات/لوکال بخوانیم:
+  if(DB && DB.plain===false) {
+    const k = localStorage.getItem('VA_encKey') || '';
+    if(!k){ alert('کلید رمزگذاری را در تنظیمات وارد کنید تا داده‌ها بازخوانی شود.'); }
+    else { DB = await aesDecrypt(DB, k); }
+  }
+  if(!DB || !DB.settings) DB = seedDB();
+  setTheme(DB.settings.theme||'');
+  $('#voiceMode').value=DB.settings.voice||'on';
+  $('#themeSel').value=DB.settings.theme||'';
+  $('#profileSel').value=DB.settings.profile||'pro';
+  $('#periodLabel').textContent='دوره '+(DB.settings.period||DEF_PERIOD);
+  ensureAccountOptions();
+  renderAll();
+  scheduleBackups();
+  if(!askPINIfSet()) return;
+}
+document.addEventListener('DOMContentLoaded', init);
+  /************ رندر داشبورد و لیست‌ها ************/
+function renderDash(){
+  const today = new Date().toISOString().slice(0,10);
+  const incToday = DB.tx.filter(t=>t.date.slice(0,10)===today && t.amount>0).reduce((s,t)=>s+t.amount,0);
+  const expToday = DB.tx.filter(t=>t.date.slice(0,10)===today && t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const net = DB.tx.reduce((s,t)=>s+t.amount,0);
+  $('#sumIncToday').textContent=fmt(incToday);
+  $('#sumExpToday').textContent=fmt(expToday);
+  $('#sumNet').textContent=fmt(net);
+  // recent
+  const UL=$('#recentList'); UL.innerHTML='';
+  DB.tx.slice(-10).reverse().forEach(t=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<span class="small">${t.note||''}</span><strong>${fmt(t.amount)}</strong>`;
+    UL.appendChild(li);
+  });
+  drawCharts();
+}
+function renderTx(){
+  const q = ($('#txSearch').value||'').trim();
+  const f = $('#txFilter').value;
+  const UL=$('#txList'); UL.innerHTML='';
+  DB.tx.slice().reverse().filter(t=>{
+    if(f==='inc' && t.amount<=0) return false;
+    if(f==='exp' && t.amount>=0) return false;
+    if(f==='tr'  && !(t.from&&t.to&&t.amount===0)){} // (در این نسخه انتقال دو ثبت دارد)
+    if(!q) return true;
+    return (t.note||'').includes(q);
+  }).forEach(t=>{
+    const li=document.createElement('li');
+    const typ = t.amount>0?'ok':(t.amount<0?'danger':'');
+    li.innerHTML=`<span class="small">${new Date(t.date).toLocaleDateString('fa-IR')} - ${t.note||''}</span>
+                  <div><strong class="${typ}">${fmt(t.amount)}</strong> <button data-del="${t.id}" class="btn small">حذف</button></div>`;
+    UL.appendChild(li);
+  });
+  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{removeTx(b.dataset.del); saveDB(); renderAll();});
+}
+function buildTreeMap(){
+  const map={};
+  DB.accounts.forEach(a=>{
+    if(a.parent){
+      (map[a.parent]=map[a.parent]||{id:a.parent, children:[]});
+      map[a.parent].children.push(a);
+    }
+  });
+  return map;
+}
+function renderAccounts(){
+  ensureAccountOptions();
+  const UL=$('#accList'); UL.innerHTML='';
+  DB.accounts.forEach(a=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<div>${a.level} • ${a.id} — ${a.name}</div>
+      <div class="row">
+        <button class="btn small" data-edit="${a.id}">ویرایش</button>
+        <button class="btn small danger" data-del="${a.id}">حذف</button>
+      </div>`;
+    UL.appendChild(li);
+  });
+  UL.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
+    const a=DB.accounts.find(x=>x.id===b.dataset.edit);
+    const name=prompt('نام حساب:', a.name)||a.name;
+    a.name=name; saveDB(); renderAccounts();
+  });
+  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    if(!confirm('حذف حساب؟'))return;
+    DB.accounts=DB.accounts.filter(x=>x.id!==b.dataset.del); saveDB(); renderAccounts();
+  });
+  // درخت
+  const tree=$('#accTree'); tree.innerHTML='';
+  DB.accounts.filter(a=>!a.parent).forEach(root=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<div>${root.name}</div>`;
+    const sub=document.createElement('ul'); sub.className='list';
+    DB.accounts.filter(a=>a.parent===root.id).forEach(ch=>{
+      const li2=document.createElement('li'); li2.textContent=ch.name; sub.appendChild(li2);
+    });
+    li.appendChild(sub); tree.appendChild(li);
+  });
+}
+function renderCheques(){
+  const UL=$('#chList'); UL.innerHTML='';
+  const kind=$('#chKind').value;
+  DB.cheques.filter(c=>c.kind===kind).slice().reverse().forEach(c=>{
+    const li=document.createElement('li');
+    const status = {inHand:'نزد صندوق', paid:'خرج/وصول شده', returned:'برگشتی'}[c.status]||c.status;
+    li.innerHTML=`<div class="small">${c.bank} • ${c.number} • سررسید: ${c.due} • ${c.party}</div>
+      <div class="row"><strong>${fmt(c.amount)}</strong>
+      <select data-st="${c.id}">
+        <option value="inHand" ${c.status==='inHand'?'selected':''}>نزد صندوق</option>
+        <option value="paid" ${c.status==='paid'?'selected':''}>خرج/وصول</option>
+        <option value="returned" ${c.status==='returned'?'selected':''}>برگشتی</option>
+      </select>
+      <button class="btn small danger" data-del="${c.id}">حذف</button></div>`;
+    UL.appendChild(li);
+  });
+  UL.querySelectorAll('[data-st]').forEach(s=>s.onchange=()=>{const c=DB.cheques.find(x=>x.id===s.dataset.st); c.status=s.value; saveDB();});
+  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{DB.cheques=DB.cheques.filter(x=>x.id!==b.dataset.del); saveDB(); renderCheques();});
+}
+function renderInst(){
+  const UL=$('#insList'); UL.innerHTML='';
+  DB.inst.filter(i=>i.period===DB.settings.period).slice().reverse().forEach(i=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<div class="small">${i.note} | ${i.paid}/${i.count} | بعدی: ${i.next||'-'}</div>
+      <div class="row"><strong>${fmt(i.per)}</strong>
+      <button class="btn small ok" data-pay="${i.id}">پرداخت</button>
+      <button class="btn small danger" data-del="${i.id}">حذف</button></div>`;
+    UL.appendChild(li);
+  });
+  UL.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{
+    const i=DB.inst.find(x=>x.id===b.dataset.pay); if(!i) return;
+    // پرداخت یک قسط:
+    addTx({amount:i.per, from:'3.1', to:'2.1', method:'inst', note:'قسط: '+i.note, sign:-1});
+    i.paid=(i.paid||0)+1;
+    const d=i.next?new Date(i.next):new Date(); d.setMonth(d.getMonth()+1); i.next=d.toISOString().slice(0,10);
+    if(i.paid>=i.count) i.done=true;
+    saveDB(); renderInst(); renderDash(); renderTx();
+  });
+  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{DB.inst=DB.inst.filter(x=>x.id!==b.dataset.del); saveDB(); renderInst();});
+}
+function renderBuilding(){
+  const sel=$('#bSelect'); sel.innerHTML='';
+  DB.building.items.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=b.name; sel.appendChild(o);});
+  if(DB.building.items.length===0){ DB.building.items.push({id:'b1',name:'ساختمان ۱'}); }
+  if(!sel.value && DB.building.items[0]) sel.value=DB.building.items[0].id;
+  const bid=sel.value;
+  const UL=$('#bUnits'); UL.innerHTML='';
+  DB.building.units.filter(u=>u.bid===bid).forEach(u=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<div>${u.name} • سهم ${u.share||0}%</div>
+      <div class="row"><button class="btn small" data-ed="${u.id}">ویرایش</button>
+      <button class="btn small danger" data-del="${u.id}">حذف</button></div>`;
+    UL.appendChild(li);
+  });
+  UL.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{
+    const u=DB.building.units.find(x=>x.id===b.dataset.ed);
+    u.name=prompt('نام واحد',u.name)||u.name; u.share=+prompt('سهم %',u.share)||u.share; saveDB(); renderBuilding();
+  });
+  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{DB.building.units=DB.building.units.filter(x=>x.id!==b.dataset.del); saveDB(); renderBuilding();});
+}
+function drawCharts(){
+  // ۳ ماه اخیر
+  const months=[], inc=[], exp=[];
+  for(let i=2;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); months.push(`${d.getFullYear()}/${d.getMonth()+1}`); inc.push(0); exp.push(0); }
+  DB.tx.forEach(t=>{
+    const d=new Date(t.date); const label=`${d.getFullYear()}/${d.getMonth()+1}`; const idx=months.indexOf(label);
+    if(idx>=0){ if(t.amount>0) inc[idx]+=t.amount; else exp[idx]+=Math.abs(t.amount); }
+  });
+  const c1=$('#chartIE').getContext('2d');
+  if(window._cIE) window._cIE.destroy();
+  window._cIE=new Chart(c1,{type:'bar',data:{labels:months,datasets:[{label:'درآمد',backgroundColor:'#10b981',data:inc},{label:'هزینه',backgroundColor:'#ef4444',data:exp}]},options:{responsive:true,maintainAspectRatio:false}});
+  // سهم حساب‌ها
+  const accMap={};
+  DB.accounts.forEach(a=>accMap[a.id]=0);
+  DB.tx.forEach(t=>{ if(t.amount>0) accMap[t.to]+=t.amount; else accMap[t.from]+=Math.abs(t.amount); });
+  const labels=Object.keys(accMap).map(k=> (DB.accounts.find(a=>a.id===k)||{}).name||k);
+  const values=Object.values(accMap);
+  const c2=$('#chartAccounts').getContext('2d');
+  if(window._cAcc) window._cAcc.destroy();
+  window._cAcc=new Chart(c2,{type:'pie',data:{labels, datasets:[{data:values}]} , options:{responsive:true,maintainAspectRatio:false}});
+}
+
+/************ هوش صوتی + تبدیل گفتار به متن ************/
+function speak(txt){ try{ const u=new SpeechSynthesisUtterance(txt); u.lang='fa-IR'; speechSynthesis.speak(u);}catch{} }
+function listenNoteOnce(targetInput){
+  if($('#voiceMode').value==='off') return;
+  try{
+    const R=window.SpeechRecognition||window.webkitSpeechRecognition; if(!R) return alert('SpeechRecognition در این مرورگر نیست');
+    const r=new R(); r.lang='fa-IR'; r.interimResults=false; r.maxAlternatives=1; r.onresult=e=>{ targetInput.value=e.results[0][0].transcript; }; r.start();
+  }catch(e){ alert('خطا در میکروفون'); }
+}
+$('#btnVoiceExplain').onclick=()=>listenNoteOnce($('#txNote'));
+
+/************ پیامک بانکی — افزودن و یادگیری ************/
+function parseSms(text){
+  // ساده: مبلغ + نشانه واریز/برداشت + کلیدواژه
+  const num = (text.match(/([\d,]+)\s*ریال|([\d,]+)\s*تومان/g)||[]).pop()||'0';
+  let amount = +num.replace(/[^\d]/g,'');
+  if(/تومان/.test(num)) amount*=10; // تقریبی
+  let sign = /واریز|وصول|دریافت/.test(text)? +1 : -1;
+  // یادگیری
+  let accTo='2.1';
+  for(const k in DB.smsPatterns){
+    if(text.includes(k.split('|')[1])){ const P=DB.smsPatterns[k]; accTo=P.accTo; sign=P.sign; break; }
+  }
+  return {amount, sign, accTo, raw:text};
+}
+function importFromSMS(){
+  const raw = prompt('متن پیامک بانکی را اینجا بچسبان:','');
+  if(!raw) return;
+  const p=parseSms(raw);
+  const ok = confirm(`تشخیص: مبلغ ${fmt(p.amount)} | نوع: ${p.sign>0?'دریافت':'پرداخت'} | سرفصل: ${p.accTo}\nتأیید؟`);
+  if(!ok) return;
+  if(p.sign>0) addTx({amount:p.amount, from:'5', to:p.accTo, method:'cash', note:'از پیامک: دریافت', sign:+1});
+  else addTx({amount:p.amount, from:p.accTo, to:'3.1', method:'cash', note:'از پیامک: پرداخت', sign:-1});
+  // یادگیری کلیدواژه
+  const kw = prompt('یک کلمه‌ی کلیدی از متن برای یادگیری وارد کن (مثلاً "شارژ ایرانسل") یا خالی بگذار:','')||'';
+  if(kw){
+    DB.smsPatterns['BANK|'+kw]={accTo:p.accTo, sign:p.sign};
+  }
   saveDB(); renderAll();
 }
-$('#btnAddExpense').onclick=()=>{ const amt=+($('#txAmount').value||0); if(!amt) return alert('مبلغ؟'); addTx({amount:-Math.abs(amt), from:$('#txFrom').value||'1.2', to:$('#txTo').value||'5', note:$('#txNote').value, method:$('#txMethod').value}); $('#txAmount').value=''; $('#txNote').value=''; };
-$('#btnAddIncome').onclick=()=>{ const amt=+($('#txAmount').value||0); if(!amt) return alert('مبلغ؟'); addTx({amount:+Math.abs(amt), from:$('#txFrom').value||'7', to:$('#txTo').value||'1.1.1', note:$('#txNote').value, method:$('#txMethod').value}); $('#txAmount').value=''; $('#txNote').value=''; };
-$('#btnAddTransfer').onclick=()=>{ const amt=+($('#txAmount').value||0); if(!amt) return alert('مبلغ؟'); addTx({amount:+Math.abs(amt), from:$('#txFrom').value, to:$('#txTo').value, note:$('#txNote').value||'انتقال', method:'transfer'}); $('#txAmount').value=''; $('#txNote').value=''; };
+$('#btnImportSMS').onclick=importFromSMS;
 
-// quick
-$('#quickIncome').onclick=()=>{$('.navlink[data-tab="transactions"]').click(); $('#txMethod').value='cash';}
-$('#quickExpense').onclick=()=>{$('.navlink[data-tab="transactions"]').click(); $('#txMethod').value='cash';}
-$('#quickTransfer').onclick=()=>{$('.navlink[data-tab="transactions"]').click(); $('#txMethod').value='cash';}
-
-// render lists
-function renderTxLists(){
-  const recent = DB.tx.slice(-12).reverse();
-  $('#recentList').innerHTML = recent.map(r=>`<li><div>${r.note||'-'}<div class="small">${new Date(r.date).toLocaleString('fa-IR')}</div></div><div>${fmt(Math.abs(r.amount))} <span class="small">${r.amount<0?'هزینه':'درآمد'}</span></div></li>`).join('');
-  const ul = $('#txList'); const rows = DB.tx.slice().reverse();
-  ul.innerHTML = rows.map(r=>`<li>
-    <div><div>${r.note||'-'}</div><div class="small">${r.method} | ${r.from} → ${r.to} | ${new Date(r.date).toLocaleString('fa-IR')}</div></div>
-    <div><strong>${fmt(Math.abs(r.amount))}</strong><button class="btn" data-edit="${r.id}">ادیت</button><button class="btn danger" data-del="${r.id}">حذف</button></div>
-  </li>`).join('');
-  ul.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ DB.tx=DB.tx.filter(x=>x.id!==b.dataset.del); saveDB(); renderTxLists(); renderDashboard(); });
-  ul.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{ const r=DB.tx.find(x=>x.id===b.dataset.edit); if(!r) return; const n=prompt('توضیح', r.note||''); if(n==null) return; const a=+prompt('مبلغ', Math.abs(r.amount)); if(!a) return; r.amount=(r.amount<0?-1:1)*Math.abs(a); r.note=n; saveDB(); renderTxLists(); renderDashboard(); });
+/************ اعلان‌ها (محلی) ************/
+async function notify(txt){
+  try{
+    if(Notification && (await Notification.requestPermission())==='granted'){
+      new Notification('حسابدار', {body:txt});
+    }else alert(txt);
+  }catch{ alert(txt); }
 }
-
-// dashboard
-function renderDashboard(){
-  const today=todayKey(); let inc=0, exp=0;
-  DB.tx.forEach(t=>{ if((t.date||'').slice(0,10)===today){ if(t.amount>0) inc+=t.amount; else exp+=Math.abs(t.amount); }});
-  const net = DB.tx.reduce((s,t)=>s+t.amount,0);
-  $('#v-inc').textContent=fmt(inc); $('#v-exp').textContent=fmt(exp); $('#v-net').textContent=fmt(net);
+function scanDue(){
+  // چک/قسط که تا ۳ روز آینده سررسید دارند
+  const now=new Date(); const soon=new Date(); soon.setDate(now.getDate()+3);
+  const dueCheques = DB.cheques.filter(c=>c.status==='inHand' && new Date(c.due)<=soon);
+  const dueInst = DB.inst.filter(i=>!i.done && new Date(i.next)<=soon);
+  if(dueCheques.length) notify(`موعد چک: ${dueCheques.length} مورد نزدیک است`);
+  if(dueInst.length) notify(`موعد قسط: ${dueInst.length} مورد نزدیک است`);
 }
+setInterval(scanDue, 60*60*1000);
 
-// ---------- cheques ----------
-function renderCheques(){ const open=DB.cheques.filter(c=>c.status!=='cleared'); const closed=DB.cheques.filter(c=>c.status==='cleared').slice(-20).reverse();
-  $('#chOpen').innerHTML=open.map(c=>`<li><div>${c.kind==='receive'?'دریافتی':'پرداختی'} — ${c.bank||'-'} | ${c.number||''}<div class="small">سررسید ${c.due} | ${c.party||''}</div></div><div>${fmt(c.amount)} <button class="btn" data-cclr="${c.id}">تسویه</button> <button class="btn danger" data-cdel="${c.id}">حذف</button></div></li>`).join('');
-  $('#chClosed').innerHTML=closed.map(c=>`<li><div>${c.bank||'-'} | ${c.number||''}</div><div class="small">${fmt(c.amount)}</div></li>`).join('');
-  $('#chOpen').querySelectorAll('[data-cclr]').forEach(b=>b.onclick=()=>{ const c=DB.cheques.find(x=>x.id===b.dataset.cclr); if(!c) return; c.status='cleared'; saveDB(); renderCheques(); });
-  $('#chOpen').querySelectorAll('[data-cdel]').forEach(b=>b.onclick=()=>{ DB.cheques=DB.cheques.filter(x=>x.id!==b.dataset.cdel); saveDB(); renderCheques(); });
-}
-$('#btnAddCheque').onclick=()=>{ const c={id:crypto.randomUUID(), kind:$('#chKind').value, bank:$('#chBank').value, number:$('#chNumber').value, amount:+($('#chAmount').value||0), due:$('#chDue').value, party:$('#chParty').value, status:'inHand', period:DB.settings.period}; if(!c.amount||!c.due) return alert('مبلغ/تاریخ؟'); DB.cheques.push(c); saveDB(); renderCheques(); $('#chBank').value=''; $('#chNumber').value=''; $('#chAmount').value=''; $('#chParty').value=''; };
+/************ رویدادهای UI ************/
+function showTab(name){ $$('.view').forEach(v=>v.classList.add('hidden')); $('#view-'+name).classList.remove('hidden'); $$('.navlink').forEach(n=>n.classList.remove('active')); document.querySelector(`.navlink[data-tab="${name}"]`).classList.add('active'); }
+$('#btnMenu').onclick=()=>$('#drawer').classList.add('show');
+$('#btnCloseDrawer').onclick=()=>$('#drawer').classList.remove('show');
+$$('.navlink').forEach(n=>n.onclick=()=>{showTab(n.dataset.tab); $('#drawer').classList.remove('show');});
 
-// ---------- installments ----------
-function renderInst(){ $('#insList').innerHTML = DB.inst.filter(i=>!i.done).map(i=>`<li><div>${i.note||'قسط'} <div class="small">بعدی: ${i.next} | ${i.paid}/${i.count}</div></div><div>${fmt(i.per)} <button class="btn" data-pay="${i.id}">پرداخت</button> <button class="btn danger" data-del="${i.id}">حذف</button></div></li>`).join('');
-  $('#insList').querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{ const i=DB.inst.find(x=>x.id===b.dataset.pay); if(!i) return; i.paid++; const d=new Date(i.next); d.setMonth(d.getMonth()+1); i.next=d.toISOString().slice(0,10); if(i.paid>=i.count) i.done=true; saveDB(); renderInst(); });
-  $('#insList').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ DB.inst=DB.inst.filter(x=>x.id!==b.dataset.del); saveDB(); renderInst(); }); }
-$('#btnAddInst').onclick=()=>{ const i={id:crypto.randomUUID(), note:$('#insNote').value, per:+($('#insPer').value||0), count:+($('#insCount').value||0), paid:0, next:$('#insNext').value||todayKey(), done:false, period:DB.settings.period}; if(!i.per||!i.count) return alert('مبلغ/تعداد؟'); DB.inst.push(i); saveDB(); renderInst(); $('#insNote').value=''; $('#insPer').value=''; $('#insCount').value=''; };
+$('#btnAddIncome').onclick=()=>{ $('#txTo').value='1.1'; $('#txMethod').value='cash'; $('#txAmount').focus(); };
+$('#btnAddExpense').onclick=()=>{ $('#txFrom').value='2.1'; $('#txMethod').value='cash'; $('#txAmount').focus(); };
+$('#btnTransfer').onclick=()=>{ $('#txMethod').value='cash'; $('#txAmount').focus(); };
 
-// ---------- building ----------
-function renderBuildings(){ const sel=$('#bSelect'); sel.innerHTML=''; DB.building.items.forEach(b=>sel.insertAdjacentHTML('beforeend', `<option value="${b.id}">${b.name}</option>`)); const bid=sel.value||DB.building.items[0]?.id; const units = DB.building.units.filter(u=>u.bid===bid); $('#unitList').innerHTML = units.map(u=>`<li><div>واحد ${u.name} — سهم ${u.share||0}%</div><div><button class="btn danger" data-udel="${u.id}">حذف</button></div></li>`).join(''); $('#unitList').querySelectorAll('[data-udel]').forEach(b=>b.onclick=()=>{ DB.building.units=DB.building.units.filter(x=>x.id!==b.dataset.udel); saveDB(); renderBuildings(); }); }
-$('#btnAddBuilding').onclick=()=>{ const n=$('#bName').value.trim(); if(!n) return; DB.building.items.push({id:crypto.randomUUID(), name:n}); saveDB(); $('#bName').value=''; renderBuildings(); };
-$('#btnAddUnit').onclick=()=>{ const bid=$('#bSelect').value; if(!bid) return alert('ساختمان را انتخاب کن'); const u={id:crypto.randomUUID(), bid, name:$('#unitName').value.trim(), share:+($('#unitShare').value||0)}; if(!u.name) return; DB.building.units.push(u); saveDB(); $('#unitName').value=''; $('#unitShare').value=''; renderBuildings(); };
-$('#btnSplitFee').onclick=()=>{ const bid=$('#bSelect').value; if(!bid) return alert('ساختمان؟'); const title=$('#feeTitle').value.trim(); const amt=+($('#feeAmount').value||0); if(!title||!amt) return; const units=DB.building.units.filter(u=>u.bid===bid); const sumShare=units.reduce((s,u)=>s+(u.share||0),0)||units.length; units.forEach(u=>{ const portion=Math.round(amt*(u.share||0)/sumShare); addTx({amount:-portion, from:'1.2', to:'5', note:`${title} - واحد ${u.name}`}); }); alert('تقسیم شد'); };
+$('#btnSaveIncome').onclick=async ()=>{
+  const amount=+$('#txAmount').value||0; if(!amount) return;
+  addTx({amount, from:$('#txFrom').value, to:$('#txTo').value, method:$('#txMethod').value, note:$('#txNote').value, sign:+1});
+  await saveDB(); renderAll(); speak('دریافت ثبت شد');
+};
+$('#btnSaveExpense').onclick=async ()=>{
+  const amount=+$('#txAmount').value||0; if(!amount) return;
+  addTx({amount, from:$('#txFrom').value, to:$('#txTo').value, method:$('#txMethod').value, note:$('#txNote').value, sign:-1});
+  await saveDB(); renderAll(); speak('پرداخت ثبت شد');
+};
+$('#btnSaveTransfer').onclick=async ()=>{
+  const amount=+$('#txAmount').value||0; if(!amount) return;
+  // انتقال = یک خروجی و یک ورودی
+  addTx({amount, from:$('#txFrom').value, to:'', method:'transfer', note:'انتقال: '+$('#txNote').value, sign:-1});
+  addTx({amount, from:'', to:$('#txTo').value, method:'transfer', note:'انتقال: '+$('#txNote').value, sign:+1});
+  await saveDB(); renderAll(); speak('انتقال انجام شد');
+};
 
-// ---------- reports & charts ----------
-let chartIE=null, chartByAccount=null;
+$('#txSearch').oninput=renderTx; $('#txFilter').onchange=renderTx;
+
+$('#btnAccAdd').onclick=()=>{ const id=prompt('کد حساب (مثل 2.3 یا 6):'); if(!id) return; const name=prompt('نام حساب:'); const level=(id.split('.').length); const parent = id.includes('.')? id.split('.').slice(0,-1).join('.') : ''; DB.accounts.push({id,name,level,parent}); saveDB(); renderAccounts(); };
+$('#btnAccTree').onclick=()=>$('#accTreePanel').classList.toggle('hidden');
+
+$('#btnAddCheque').onclick=()=>{
+  const c={id:cryptoRand(),kind:$('#chKind').value, bank:prompt('بانک؟','ملی')||'—', number:prompt('شماره چک؟','')||'', amount:+prompt('مبلغ؟','0')||0, due:prompt('تاریخ سررسید؟','1404-12-29')||'', party:prompt('دریافت از/پرداخت به؟','')||'', status:'inHand', period:DB.settings.period};
+  DB.cheques.push(c); saveDB(); renderCheques();
+};
+
+$('#btnAddInst').onclick=()=>{
+  const i={id:cryptoRand(), note:$('#insNote').value, per:+$('#insPer').value||0, count:+$('#insCount').value||0, paid:0, next:$('#insNext').value||todayKey(), done:false, period:DB.settings.period};
+  if(!i.per||!i.count) return alert('مبلغ/تعداد نامعتبر');
+  DB.inst.push(i); saveDB(); renderInst();
+};
+
+$('#bSelect').onchange=renderBuilding;
+$('#btnBAdd').onclick=()=>{ const name=prompt('نام ساختمان/مجتمع؟','ساختمان جدید'); if(!name) return; DB.building.items.push({id:cryptoRand(),name}); saveDB(); renderBuilding(); };
+$('#btnBAddUnit').onclick=()=>{ const bid=$('#bSelect').value; const name=$('#bUnitName').value.trim(); const share=+$('#bUnitShare').value||0; if(!name) return; DB.building.units.push({id:cryptoRand(),bid,name,share}); saveDB(); renderBuilding(); };
+$('#btnBSplit').onclick=()=>{
+  const bid=$('#bSelect').value; const units=DB.building.units.filter(u=>u.bid===bid);
+  const tot=+$('#bCostTotal').value||0; const note=$('#bCostNote').value||'هزینه مشترک';
+  const sumShare = units.reduce((s,u)=>s+(+u.share||0),0)||100;
+  const UL=$('#bSplitList'); UL.innerHTML='';
+  units.forEach(u=>{
+    const part = Math.round(tot*(u.share||0)/sumShare);
+    const li=document.createElement('li'); li.innerHTML=`<div>${u.name}</div><strong>${fmt(part)}</strong>`; UL.appendChild(li);
+    // ثبت پرداخت هر واحد (در حالت Lite فقط نمایش؛ در حالت Pro ثبت تراکنش)
+    if(DB.settings.profile==='pro'){
+      addTx({amount:part, from:'3.1', to:'2.1', method:'cash', note:`${note} - ${u.name}`, sign:-1});
+    }
+  });
+  saveDB(); renderAll();
+};
+
+/************ تنظیمات ************/
+$('#themeSel').onchange=()=>setTheme($('#themeSel').value);
+$('#voiceMode').onchange=()=>{setVoiceMode($('#voiceMode').value); saveDB();}
+$('#profileSel').onchange=()=>setProfile($('#profileSel').value);
+$('#notifyDue').checked=true;
+$('#btnSetPeriod').onclick=()=>{ const p=prompt('عدد دوره مالی (مثلاً 1404):', DB.settings.period)||DB.settings.period; DB.settings.period=p; DB.periods[p]=true; saveDB(); $('#periodLabel').textContent='دوره '+p; };
+$('#btnClosePeriod').onclick=()=>{ if(confirm('بستن دوره و شروع جدید؟')){ const np=String((+DB.settings.period||1404)+1); DB.settings.period=np; DB.periods[np]=true; saveDB(); $('#periodLabel').textContent='دوره '+np; } };
+$('#btnSetPIN').onclick=()=>{ DB.settings.pin=$('#pinInput').value||''; saveDB(); alert('PIN ثبت شد'); };
+$('#btnSetEnc').onclick=async ()=>{ const pass=$('#encKey').value||''; if(!pass){ DB.settings.encKey=''; localStorage.removeItem('VA_encKey'); await saveDB(); return alert('رمزگذاری غیرفعال شد'); } const k=await deriveKey(pass); DB.settings.encKey=k; localStorage.setItem('VA_encKey',k); await saveDB(); alert('کلید ثبت شد (پشتیبان‌ها رمز می‌شوند)'); };
+$('#bkDaily').onchange=()=>{ DB.settings.bkDaily=$('#bkDaily').checked; saveDB(); };
+$('#bkExit').onchange=()=>{ DB.settings.bkExit=$('#bkExit').checked; saveDB(); };
+$('#bkMonthly').onchange=()=>{ DB.settings.bkMonthly=$('#bkMonthly').checked; saveDB(); };
+$('#cfUrl').oninput=()=>{ DB.settings.cfUrl=$('#cfUrl').value.trim(); saveDB(); };
+$('#cfSecret').oninput=()=>{ DB.settings.cfSecret=$('#cfSecret').value.trim(); saveDB(); };
+$('#btnBackupNow').onclick=()=>saveBackupLocal('daily');
+$('#btnRestoreFile').onclick=()=>$('#fileRestore').click();
+$('#fileRestore').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const txt=await f.text(); const pack=JSON.parse(txt);
+  if(!pack.data) return alert('فایل نامعتبر');
+  if(!confirm('بازیابی و جایگزینی همه داده‌ها؟')) return;
+  DB=pack.data; await saveDB(); location.reload();
+};
+
+/************ ابزارها ************/
+$('#toolCalc').onclick=()=>{ const v=prompt('حساب کنید (مثلاً 2*3+5):',''); if(!v) return; try{$('#toolsArea').textContent='= '+Intl.NumberFormat('fa-IR').format(Function('return '+v)());}catch{$('#toolsArea').textContent='فرمول نامعتبر';}};
+$('#toolFx').onclick=()=>{ const r=+prompt('نرخ دلار (تومان):','0')||0; const a=+prompt('مبلغ دلار:','0')||0; $('#toolsArea').textContent=Intl.NumberFormat('fa-IR').format(r*a)+' تومان'; };
+$('#toolNote').onclick=()=>{ const t=prompt('یادداشت:',''); if(t) $('#toolsArea').textContent='یادداشت: '+t; };
+
+/************ گزارش‌ها ************/
 function renderReports(){
   const income = DB.tx.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
   const expense = DB.tx.filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
   const net = income-expense;
-  $('#reportSummary').innerHTML = `<div class="card"><div>جمع درآمد</div><strong>${fmt(income)}</strong></div><div class="card"><div>جمع هزینه</div><strong>${fmt(expense)}</strong></div><div class="card"><div>خالص</div><strong>${fmt(net)}</strong></div>`;
-  // income/expense chart (last 3 months)
-  const months = []; const incData=[], expData=[];
-  for(let i=2;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); const label=`${d.getFullYear()}/${d.getMonth()+1}`; months.push(label); incData.push(0); expData.push(0); }
-  DB.tx.forEach(t=>{ const d=new Date(t.date); const idx = months.findIndex(m=>m.startsWith(`${d.getFullYear()}/${d.getMonth()+1}`)); if(idx>=0){ if(t.amount>0) incData[idx]+=t.amount; else expData[idx]+=Math.abs(t.amount); }});
-  const ctx=document.getElementById('chartIncomeExpense').getContext('2d');
-  if(chartIE) chartIE.destroy();
-  chartIE = new Chart(ctx, {type:'bar', data:{labels:months, datasets:[{label:'درآمد',backgroundColor:'#10b981',data:incData},{label:'هزینه',backgroundColor:'#ef4444',data:expData}]}, options:{responsive:true,maintainAspectRatio:false}});
-  // by account pie
-  const accMap={}; DB.accounts.forEach(a=>accMap[a.id]=0);
-  DB.tx.forEach(t=>{ if(accMap[t.to]!==undefined) accMap[t.to]+= Math.max(0,t.amount); if(accMap[t.from]!==undefined) accMap[t.from]+= Math.max(0, -t.amount); });
-  const labels=Object.keys(accMap).map(k=> DB.accounts.find(a=>a.id===k)?.name || k);
-  const values=Object.keys(accMap).map(k=>accMap[k]);
-  const ctx2=document.getElementById('chartByAccount').getContext('2d');
-  if(chartByAccount) chartByAccount.destroy();
-  chartByAccount=new Chart(ctx2,{type:'pie',data:{labels, datasets:[{data:values, backgroundColor:labels.map((_,i)=>['#6366f1','#10b981','#f97316','#ef4444','#06b6d4'][i%5])}]}, options:{responsive:true,maintainAspectRatio:false}});
+  $('#reportSummary').innerHTML = `
+    جمع درآمد: <strong>${fmt(income)}</strong> — 
+    جمع هزینه: <strong>${fmt(expense)}</strong> — 
+    خالص: <strong>${fmt(net)}</strong>`;
+  // نمودار سرفصل‌ها بر اساس مقصد/مبدأ
+  const accMap={};
+  DB.accounts.forEach(a=>accMap[a.id]=0);
+  DB.tx.forEach(t=>{ if(t.amount>0) accMap[t.to]+=t.amount; else accMap[t.from]+=Math.abs(t.amount); });
+  const labels=Object.keys(accMap).map(k=> (DB.accounts.find(a=>a.id===k)||{}).name||k);
+  const values=Object.values(accMap);
+  const ctx=$('#chartByAccount').getContext('2d');
+  if(window._cBA) window._cBA.destroy();
+  window._cBA=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'مبالغ',data:values, backgroundColor:'#0b9981'}]},options:{responsive:true,maintainAspectRatio:false}});
+}
+$('#btnExportJSON').onclick=()=>{ const blob=new Blob([JSON.stringify(DB)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='VA_DB.json'; a.click(); };
+$('#btnExportCSV').onclick=()=>{ const rows=[['date','amount','from','to','method','note']]; DB.tx.forEach(t=>rows.push([t.date,t.amount,t.from,t.to,t.method,(t.note||'').replace(/\n/g,' ')])); const csv=rows.map(r=>r.join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='VA_DB.csv'; a.click(); };
+$('#btnExportPDF').onclick=()=>{ window.print(); };
+
+/************ رندر کلی ************/
+function renderAll(){
+  renderDash(); renderTx(); renderAccounts(); renderCheques(); renderInst(); renderBuilding(); renderReports();
+  // نمایش الگوهای پیامکی
+  const box=$('#smsPatternsBox'); const keys=Object.keys(DB.smsPatterns); if(keys.length===0) box.textContent='هنوز الگویی ذخیره نشده'; else box.innerHTML=keys.map(k=>`<div>• ${k} => ${(DB.smsPatterns[k].sign>0?'دریافت':'پرداخت')} → ${DB.smsPatterns[k].accTo}</div>`).join('');
 }
 
-// ---------- settings actions ----------
-$$('.chip.theme').forEach(b=>b.onclick=()=>{ applyTheme(b.dataset.theme); });
-$('#toggleVoice').checked = !!DB.settings.voice; $('#toggleVoice').onchange=()=>{ DB.settings.voice=$('#toggleVoice').checked; saveDB(); };
-$('#periodInput').value=DB.settings.period||''; $('#btnSetPeriod').onclick=()=>{ const p=$('#periodInput').value.trim(); if(!p) return; DB.settings.period=p; if(!DB.periods.includes(p)) DB.periods.push(p); saveDB(); $('#periodLabel').textContent=p; renderAll(); };
-$('#btnClosePeriod').onclick=()=>{ if(!confirm('دوره بسته شود؟')) return; alert('دوره بسته شد (عملیاتی برای انتقال مانده‌ها بعداً فعال می‌شود).'); };
+/* دکمه‌های اصلی هدر */
+$('#btnBackup').onclick=()=>saveBackupLocal('daily');
+$('#btnVoice').onclick=()=>alert('حالت صوتی '+(DB.settings.voice==='on'?'فعال':'غیرفعال'));
 
-// ---------- PIN Lock ----------
-function askPIN(){ const pin=prompt('PIN را وارد کن'); return pin===DB.settings.pin; }
-$('#btnSetPIN').onclick=()=>{ const pin=$('#pinInput').value.trim(); if(pin && /^\d{4}$/.test(pin)){ DB.settings.pin=pin; saveDB(); alert('PIN ثبت شد'); } else alert('PIN چهار رقمی وارد کن'); };
-$('#btnLock').onclick=()=>{ localStorage.setItem('va_locked','1'); alert('قفل شد؛ برای ورود PIN لازم است.'); location.reload(); };
-(function onLoadLock(){ if(localStorage.getItem('va_locked')==='1'){ const ok = askPIN(); if(ok){ localStorage.removeItem('va_locked'); } else { alert('PIN اشتباه'); location.reload(); } }})();
-
-// ---------- Passkey (WebAuthn) simple helpers ----------
-// Note: for production you'd store credentials server-side; here we demonstrate client flow
-async function registerPasskey(){
-  if(!window.PublicKeyCredential){ alert('Passkey پشتیبانی نمی‌شود'); return;}
-  const challenge = crypto.getRandomValues(new Uint8Array(32));
-  const userId = crypto.getRandomValues(new Uint8Array(16));
-  const pubKeyOpts = { publicKey: {
-    challenge, rp:{name:'VoiceAccountant', id:location.hostname}, user:{id:userId, name:'owner', displayName:'Owner'},
-    pubKeyCredParams:[{type:'public-key', alg:-7}], timeout:60000, authenticatorSelection:{userVerification:'required'}
-  }};
-  try{
-    const cred = await navigator.credentials.create(pubKeyOpts);
-    // store credential id minimal
-    DB.settings.cred = { id: arrayBufferToBase64(cred.rawId) };
-    saveDB(); alert('Passkey ثبت شد. از این پس می‌توانید با Face ID باز کنید.');
-  }catch(e){ console.warn(e); alert('ثبت نام Passkey انجام نشد: '+e); }
-}
-async function unlockWithPasskey(){
-  if(!window.PublicKeyCredential){ alert('Passkey پشتیبانی نمی‌شود'); return false; }
-  try{
-    const req = { publicKey:{ challenge: crypto.getRandomValues(new Uint8Array(32)), timeout:60000, userVerification:'required' } };
-    await navigator.credentials.get(req);
-    return true;
-  }catch(e){ console.warn(e); return false; }
-}
-$('#btnRegisterPasskey').onclick=()=>registerPasskey();
-$('#btnUnlockPasskey').onclick=async ()=>{ const ok=await unlockWithPasskey(); alert(ok? 'Passkey موفق بود':'Passkey ناموفق'); };
-
-// helper ArrayBuffer <-> base64
-function arrayBufferToBase64(buf){ const s=String.fromCharCode(...new Uint8Array(buf)); return btoa(s); }
-function base64ToArrayBuffer(b64){ const bin=atob(b64); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return arr.buffer; }
-
-// ---------- calculator modal ----------
-const calcModal=$('#calcModal'), calcExpr=$('#calcExpr');
-$('#btnCalc').onclick=()=>{ calcModal.classList.add('show'); calcExpr.focus(); };
-$('#calcClose').onclick=()=>calcModal.classList.remove('show');
-$('#calcClr').onclick=()=>calcExpr.value='';
-$('#calcOk').onclick=()=>{ try{ const v=eval(calcExpr.value||'0'); $('#txAmount').value=Math.round(+v||0); calcModal.classList.remove('show'); }catch{ alert('فرمول نامعتبر'); } };
-calcModal.querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>calcExpr.value+=b.dataset.k);
-
-// ---------- Voice (SpeechRecognition) ----------
-let rec=null; const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-function startVoice(){ if(!Rec) return alert('گفتار پشتیبانی نمی‌شود'); rec=new Rec(); rec.lang='fa-IR'; rec.interimResults=false; rec.onresult=e=>{ const t=e.results[0][0].transcript; parseSpoken(t); }; rec.onerror=console.warn; rec.start(); }
-$('#btnVoice').onclick=()=>{ if(DB.settings.voice) startVoice(); else alert('از تنظیمات حالت ویس را روشن کن'); };
-
-function parseSpoken(t){
-  // بسیار ساده: مبلغ و کلیدواژه‌ها
-  const num = +(t.replace(/[^\d]/g,'')||'0');
-  if(/خرج|پرداخت|برداشت/.test(t)) addTx({amount:-Math.abs(num), from:'1.2', to:'5', note:t, method:'cash'});
-  else if(/واریز|دریافت|گرفتم|حقوق|درآمد/.test(t)) addTx({amount:+Math.abs(num), from:'7', to:'1.1.1', note:t, method:'cash'});
-  else alert('دستور صوتی: بگو "خرج ۵۰۰۰۰۰ بابت نان" یا "واریز ۲ میلیون از ...".');
-}
-
-// ---------- SMS import + learning ----------
-const smsModal=$('#smsModal'), smsText=$('#smsText');
-$('#btnFromSMS').onclick=()=>{ smsModal.classList.add('show'); smsText.value=''; smsText.focus(); };
-$('#smsCancel').onclick=()=>smsModal.classList.remove('show');
-
-$('#smsParse').onclick=()=>{
-  const txt=smsText.value.trim(); if(!txt) return alert('متن وارد نشده');
-  // try match amount
-  const m = txt.match(/([\d\.,]+)\s*(ریال|تومان|ت|ريال)/i);
-  const amount = m ? +m[1].replace(/[^\d]/g,'') : 0;
-  // detect deposit/withdraw
-  const isDeposit = /(واریز|دریافت|شارژ حساب شما|واریزی)/i.test(txt);
-  const isWithdraw = /(برداشت|کسر|خرید|خروج از حساب|برداشت کارت)/i.test(txt);
-  // sender pattern (try find bank name or sender token)
-  const senderMatch = txt.match(/(بانک\s*\w+|ملت|ملی|آینده|سامان|پارسیان|رسالت|پست بانک|صادرات)/i);
-  const sender = senderMatch ? senderMatch[0] : 'unknown';
-  // try refine note
-  let note = txt.slice(0,120);
-  if(!amount) return alert('مبلغ پیدا نشد در متن پیامک.');
-  if(isDeposit){ addTx({amount:amount, from:'7', to:'1.1.1', note:'واریز بانکی: '+note, method:'cheque'}); }
-  else if(isWithdraw){ addTx({amount:-amount, from:'1.1.1', to:'5', note:'برداشت بانکی: '+note, method:'cheque'}); }
-  else {
-    // fallback: ask user
-    const decide = confirm('نوع تراکنش مشخص نیست. این تراکنش درآمد است؟ OK=درآمد، Cancel=هزینه');
-    if(decide) addTx({amount:amount, from:'7', to:'1.1.1', note:'واریز بانکی: '+note, method:'cheque'}); else addTx({amount:-amount, from:'1.1.1', to:'5', note:'برداشت بانکی: '+note, method:'cheque'});
-  }
-  // learning: store sender -> keyword (category)
-  if(sender!=='unknown'){
-    DB.smsPatterns[sender] = DB.smsPatterns[sender] || {count:0, lastText:''};
-    DB.smsPatterns[sender].count++;
-    DB.smsPatterns[sender].lastText = txt.slice(0,120);
-    saveDB();
-  }
-  smsModal.classList.remove('show'); alert('تراکنش ثبت شد و الگو ذخیره شد.');
-};
-
-// ---------- smart suggestion from historical SMS patterns ----------
-function suggestFromSmsPatterns(text){
-  // match sender names in DB.smsPatterns
-  for(const sender in DB.smsPatterns){ if(text.includes(sender)) return DB.smsPatterns[sender].lastText; }
-  return null;
-}
-
-// ---------- AES encryption helpers (WebCrypto) ----------
-async function importAesKeyFromBase64(b64){
-  if(!b64) return null;
-  const raw = base64ToArrayBuffer(b64);
-  return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt','decrypt']);
-}
-async function encryptForBackup(obj, base64Key){
-  if(!base64Key) return JSON.stringify({data:obj, ts:Date.now()});
-  const key = await importAesKeyFromBase64(base64Key);
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const data = new TextEncoder().encode(JSON.stringify(obj));
-  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, data);
-  // store iv + ct as base64
-  const out = new Uint8Array(iv.byteLength + ct.byteLength); out.set(iv,0); out.set(new Uint8Array(ct), iv.byteLength);
-  return btoa(String.fromCharCode(...out));
-}
-async function decryptFromBackup(blobB64, base64Key){
-  if(!base64Key) return JSON.parse(blobB64);
-  const raw = base64ToArrayBuffer(blobB64);
-  const iv = raw.slice(0,12); const ct = raw.slice(12);
-  const key = await importAesKeyFromBase64(base64Key);
-  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:new Uint8Array(iv)}, key, ct);
-  return JSON.parse(new TextDecoder().decode(pt));
-}
-
-// ---------- Cloudflare backup (POST/GET) ----------
-async function sendBackupToCloudflare(payload){
-  const url = $('#cfUrl').value.trim() || DB.settings.cfUrl || '';
-  const secret = $('#cfSecret').value.trim() || DB.settings.cfSecret || '';
-  if(!url) return {ok:false, error:'no_url'};
-  const enc = await encryptForBackup(payload, secret||null);
-  try{
-    const res = await fetch(url+'/backup', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({userId:'me', period:DB.settings.period, dataJson:enc}) });
-    return await res.json();
-  }catch(e){ return {ok:false, error:String(e)}; }
-}
-async function getBackupFromCloudflare(){
-  const url = $('#cfUrl').value.trim() || DB.settings.cfUrl || '';
-  const secret = $('#cfSecret').value.trim() || DB.settings.cfSecret || '';
-  if(!url) return {ok:false, error:'no_url'};
-  try{
-    const res = await fetch(url+'/backup?userId=me&period='+encodeURIComponent(DB.settings.period));
-    const j = await res.json();
-    if(!j.ok) return {ok:false, error:j.error||'no_data', blob:j.blob};
-    const dec = await decryptFromBackup(j.blob, secret||null);
-    return {ok:true, data:dec};
-  }catch(e){ return {ok:false, error:String(e)}; }
-}
-
-// ---------- backups: save local file & manage lists ----------
-function makePack(){ return {date:new Date().toISOString(), data:DB}; }
-function saveBackupLocal(kind){ // kind: daily|monthly|exit
-  const pack = makePack();
-  const nameBase = kind==='monthly' ? `VA_Backup_Monthly_${monthKey()}` : kind==='exit' ? `VA_Backup_Exit_${todayKey()}` : `VA_Backup_Daily_${todayKey()}`;
-  // push list
-  DB.backups[kind] = DB.backups[kind] || [];
-  DB.backups[kind].push({name:nameBase,ts:Date.now()});
-  // trim
-  if(kind==='daily' && DB.backups.daily.length>7) DB.backups.daily.splice(0, DB.backups.daily.length-7);
-  if(kind==='monthly' && DB.backups.monthly.length>2) DB.backups.monthly.splice(0, DB.backups.monthly.length-2);
-  saveDB();
-  // create file and prompt save (user chooses Files/iCloud)
-  const blob = new Blob([JSON.stringify(pack)], {type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nameBase + '.json'; a.click();
-  // also try send to cloud if url set
-  const cfUrl = $('#cfUrl').value.trim() || DB.settings.cfUrl;
-  if(cfUrl) sendBackupToCloudflare(pack).then(res=>{ if(!res.ok) console.warn('Cloud backup failed', res); else console.log('Cloud backup ok'); });
-}
-function scheduleBackups(){
-  setInterval(()=>{
-    const d=new Date(); const hh=d.getHours(), mm=d.getMinutes(), day=d.getDate();
-    if(DB.settings.bkDaily && hh===23 && mm===59) saveBackupLocal('daily');
-    const lastDay = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
-    if(DB.settings.bkMonthly && day===lastDay && hh===23 && mm===59) saveBackupLocal('monthly');
-    if(DB.settings.bkMonthly && day===1 && hh===0 && mm===0) saveBackupLocal('monthly');
-  }, 60000);
-}
-scheduleBackups();
-document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState==='hidden' && DB.settings.bkOnExit){
-    const today = todayKey();
-    const tookToday = (DB.backups.daily||[]).some(b=>b.name.includes(today));
-    if(!tookToday) saveBackupLocal('exit');
-  }
-});
-$('#btnBackupNow').onclick=()=>saveBackupLocal('daily');
-$('#btnExportJSON').onclick=()=>{ const blob=new Blob([JSON.stringify(DB)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`VA_Backup_${todayKey()}.json`; a.click(); };
-$('#btnExportCSV').onclick=()=>{ const rows=[['date','amount','from','to','note','method']]; DB.tx.forEach(t=>rows.push([t.date,t.amount,t.from,t.to,(t.note||'').replace(/,/g,' '),t.method])); const csv=rows.map(r=>r.join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`VA_${todayKey()}.csv`; a.click(); };
-$('#btnExportPDF').onclick=()=>window.print();
-$('#btnRestoreFile').onclick=()=>$('#fileRestore').click();
-$('#fileRestore').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; const txt=await f.text(); const pack=JSON.parse(txt||'{}'); if(!pack.data) return alert('فایل نامعتبر'); if(!confirm('بازیابی و جایگزینی کل داده‌ها؟')) return; DB=pack.data; saveDB(); applyTheme(DB.settings.theme); $('#periodLabel').textContent=DB.settings.period; renderAll(); alert('بازیابی شد'); };
-
-// ---------- SMS-learning admin (view patterns) ----------
-function renderSmsPatterns(){
-  const el = document.createElement('div'); el.innerHTML = '<h4>الگوهای پیامکی شناخته‌شده</h4>';
-  const keys = Object.keys(DB.smsPatterns);
-  if(keys.length===0) el.innerHTML += '<div class="small">هنوز الگوی پیامکی ذخیره نشده</div>';
-  keys.forEach(k=> el.insertAdjacentHTML('beforeend', `<div class="card"><strong>${k}</strong><div class="small">آخرین: ${DB.smsPatterns[k].lastText.slice(0,80)} ... | دفعات: ${DB.smsPatterns[k].count}</div></div>`));
-  return el;
-}
-
-// ---------- SMS pattern suggestion usage (optional UI) ----------
-/* You can show patterns in settings or transaction auto-suggest */
-
-// ---------- helpers ----------
-function base64ToArrayBuffer(b64){ const bin=atob(b64); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return arr.buffer; }
-
-// ---------- renderAll ----------
-function renderAll(){ renderAccOptions(); renderAccTree(); renderTxLists(); renderDashboard(); renderCheques(); renderInst(); renderBuildings(); renderReports(); }
-renderAll();
-
-// ---------- end of main.js ----------
+/* نمایش اولیه */
+showTab('dashboard');
+</script>
+</body>
+</html>
