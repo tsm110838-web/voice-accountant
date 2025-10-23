@@ -1,890 +1,401 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>حسابدار صوتی پرو</title>
-<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;VA Pro&quot;,&quot;short_name&quot;:&quot;VA&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;}">
-<meta name="theme-color" content="#0b9981">
-<!-- Chart.js برای نمودارها -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mia AI – دستیار حسابداری هوشمند</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-@font-face{font-family:IRANSansX;src:local("Tahoma");font-display:swap}
-:root{
-  --bg:#f6f8f9; --card:#fff; --line:#e6eef2; --txt:#111;
-  --muted:#64748b; --pri:#0b9981; --ok:#11825f; --danger:#b33636;
-  --chip:#e7f3f5
+:root {
+  --color-bg: #f7f7f7;
+  --color-text: #222;
+  --color-primary: #4a90e2;
+  --color-card: #fff;
+  --color-border: #ccc;
 }
-html,body{margin:0;padding:0;font-family:IRANSansX,system-ui;background:var(--bg);color:var(--txt);height:100%}
-.small{font-size:12px;color:var(--muted)}
-.hidden{display:none}
-.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--pri);color:#fff}
-.topbar h1{font-size:18px;margin:0}
-.spacer{flex:1}
-.icon-btn{background:transparent;border:none;color:inherit;font-size:20px;padding:6px}
-.drawer{position:fixed;inset:0 0 0 auto;width:min(320px,86vw);background:#fff;border-left:1px solid var(--line);transform:translateX(100%);transition:.25s;z-index:30;display:flex;flex-direction:column}
-.drawer.show{transform:translateX(0)}
-.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--line)}
-.drawer-list{display:flex;flex-direction:column;padding:8px}
-.navlink{padding:10px 12px;margin:4px;background:#fff;border:1px solid var(--line);border-radius:12px;text-align:right}
-.drawer-foot{margin-top:auto;padding:10px;border-top:1px solid var(--line)}
-main{padding:12px}
-.cards{display:grid;gap:8px}
-@media(min-width:900px){.cards{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:899px){.cards{grid-template-columns:repeat(2,1fr)}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.list{list-style:none;margin:0;padding:0}
-.list li{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px;margin:6px 0}
-.row{display:flex;gap:8px;align-items:center}
-.grid{display:grid;gap:8px}
-.g2{grid-template-columns:1fr 1fr}
-.g4{grid-template-columns:repeat(4,1fr)}
-.grow{flex:1}
-.col-span2{grid-column:span 2}
-label{font-size:12px;color:var(--muted)}
-input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-family:inherit}
-.btn{border:none;border-radius:10px;padding:10px 14px;background:#e7f3f5;color:#064a50;cursor:pointer}
-.btn.primary{background:var(--pri);color:#fff}
-.btn.ok{background:var(--ok);color:#fff}
-.btn.danger{background:var(--danger);color:#fff}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{padding:6px 10px;border-radius:999px;background:var(--chip);border:1px solid #cfe9ec}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
-.kbd{font:12px/1.6 ui-monospace,monospace;background:#111;color:#fff;padding:0 6px;border-radius:6px}
-.badge{background:#eee;padding:2px 6px;border-radius:6px}
-footer{height:40px}
-.theme-parmis{--pri:#0d8;--ok:#0c8;--danger:#e33}
-.theme-dark{--bg:#0b1220;--card:#0e1626;--line:#1e293b;--txt:#e2e8f0;--muted:#94a3b8;--pri:#14b8a6;--ok:#10b981;--danger:#f87171;--chip:#0f1b2a}
-.theme-modern{--pri:#6366f1;--ok:#10b981;--danger:#ef4444}
+body.dark {
+  --color-bg: #1c1c1e;
+  --color-text: #eee;
+  --color-card: #2c2c2e;
+  --color-border: #444;
+}
+body.parmis {
+  --color-bg: #eaf2f8;
+  --color-text: #2e4053;
+  --color-primary: #2874a6;
+}
+body.modern {
+  --color-bg: #ffffff;
+  --color-text: #111;
+  --color-primary: #6c63ff;
+  --color-card: #fafafa;
+}
+
+body {
+  font-family: "Vazirmatn", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+  padding: 0;
+  transition: background 0.3s, color 0.3s;
+}
+
+header {
+  background: var(--color-primary);
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  border-bottom: 3px solid var(--color-border);
+}
+
+nav {
+  display: flex;
+  justify-content: space-around;
+  background: var(--color-card);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.5rem 0;
+}
+
+nav button {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--color-primary);
+}
+
+section {
+  padding: 1rem;
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+input, select, button, textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+button.primary {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.chart-container {
+  width: 100%;
+  height: 250px;
+}
+
+.hidden {
+  display: none;
+}
 </style>
 </head>
-<body>
-<header class="topbar">
-  <button id="btnMenu" class="icon-btn">☰</button>
-  <h1>حسابدار صوتی پرو</h1>
-  <span id="periodLabel" class="badge">دوره 1404</span>
-  <div class="spacer"></div>
-  <button id="btnVoice" class="icon-btn" title="هوش صوتی">🎤</button>
-  <button id="btnBackup" class="icon-btn" title="پشتیبان‌گیری">💾</button>
-</header>
 
-<!-- منوی کناری -->
-<aside id="drawer" class="drawer" aria-hidden="true">
-  <div class="drawer-head">
-    <strong>منو</strong>
-    <button id="btnCloseDrawer" class="icon-btn">✕</button>
-  </div>
-  <nav class="drawer-list">
-    <button class="navlink" data-tab="dashboard">داشبورد</button>
-    <button class="navlink" data-tab="tx">تراکنش‌ها</button>
-    <button class="navlink" data-tab="accounts">حساب‌ها</button>
-    <button class="navlink" data-tab="cheques">چک‌ها</button>
-    <button class="navlink" data-tab="installments">اقساط</button>
-    <button class="navlink" data-tab="building">مدیریت ساختمان</button>
-    <button class="navlink" data-tab="reports">گزارش‌ها</button>
-    <button class="navlink" data-tab="tools">ابزارها</button>
-    <button class="navlink" data-tab="settings">تنظیمات</button>
-  </nav>
-  <div class="drawer-foot small">
-    <div class="row">
-      <label class="small">پروفایل:</label>
-      <select id="profileSel" class="grow">
-        <option value="pro">حسابداری کامل</option>
-        <option value="lite">حسابداری سبک (ساختمان/شخصی)</option>
-      </select>
-    </div>
-  </div>
-</aside>
+<body class="parmis">
+<header>📊 Mia AI – حسابدار هوشمند</header>
+
+<nav>
+  <button onclick="showSection('dashboard')">خانه</button>
+  <button onclick="showSection('transactions')">تراکنش‌ها</button>
+  <button onclick="showSection('reports')">گزارش</button>
+  <button onclick="showSection('voice')">🎤 صوتی</button>
+  <button onclick="showSection('settings')">⚙️ تنظیمات</button>
+</nav>
 
 <main>
-  <!-- داشبورد -->
-  <section id="view-dashboard" class="view">
-    <div class="cards">
-      <div class="card">
-        <h3>خلاصه سریع</h3>
-        <div class="list">
-          <li><span>موجودی خالص</span><strong id="sumNet">–</strong></li>
-          <li><span>درآمد امروز</span><strong id="sumIncToday">–</strong></li>
-          <li><span>هزینه امروز</span><strong id="sumExpToday">–</strong></li>
-        </div>
-        <div class="chips">
-          <button class="chip" id="btnAddIncome">+ درآمد</button>
-          <button class="chip" id="btnAddExpense">+ هزینه</button>
-          <button class="chip" id="btnTransfer">↔ انتقال</button>
-          <button class="chip" id="btnImportSMS">افزودن از پیامک بانکی</button>
-        </div>
-      </div>
-      <div class="card col-span2">
-        <h3>نمودار درآمد/هزینه (۳ ماه اخیر)</h3>
-        <canvas id="chartIE" height="110"></canvas>
-      </div>
-      <div class="card">
-        <h3>سهم حساب‌ها</h3>
-        <canvas id="chartAccounts" height="110"></canvas>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>ثبت تراکنش</h3>
-      <div class="grid g2">
-        <div>
-          <label>مبلغ</label>
-          <div class="row">
-            <input id="txAmount" placeholder="مثلاً 3000000" inputmode="numeric">
-            <button id="btnCalc" class="btn">🧮</button>
-          </div>
-        </div>
-        <div>
-          <label>نوع پرداخت</label>
-          <select id="txMethod">
-            <option value="cash">نقدی</option>
-            <option value="cheque">چکی</option>
-            <option value="inst">قسطی</option>
-          </select>
-        </div>
-        <div>
-          <label>از حساب</label>
-          <select id="txFrom"></select>
-        </div>
-        <div>
-          <label>به حساب</label>
-          <select id="txTo"></select>
-        </div>
-        <div class="col-span2">
-          <label>توضیح</label>
-          <input id="txNote" placeholder="مثلاً خرید سوپر / دریافت از ...">
-        </div>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <button id="btnSaveExpense" class="btn danger">ثبت هزینه</button>
-        <button id="btnSaveIncome" class="btn ok">ثبت درآمد</button>
-        <button id="btnSaveTransfer" class="btn">ثبت انتقال</button>
-        <button id="btnVoiceExplain" class="btn">🎙️ توضیح صوتی</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>تراکنش‌های اخیر</h3>
-      <ul id="recentList" class="list"></ul>
-    </div>
+  <!-- بخش داشبورد -->
+  <section id="dashboard" class="card">
+    <h3>خلاصه حساب</h3>
+    <p>درآمد کل: <span id="totalIncome">۰</span> تومان</p>
+    <p>هزینه کل: <span id="totalExpense">۰</span> تومان</p>
+    <p>مانده: <span id="balance">۰</span> تومان</p>
   </section>
 
-  <!-- سایر نماها: تراکنش‌ها/حساب‌ها/چک‌ها/اقساط/ساختمان/گزارش/ابزار/تنظیمات -->
-  <section id="view-tx" class="view hidden">
-    <div class="row" style="margin-bottom:8px">
-      <input id="txSearch" class="grow" placeholder="جستجو...">
-      <select id="txFilter">
-        <option value="all">همه</option>
-        <option value="inc">دریافت</option>
-        <option value="exp">پرداخت</option>
-        <option value="tr">انتقال</option>
-      </select>
+  <!-- بخش تراکنش‌ها -->
+  <section id="transactions" class="card hidden">
+    <h3>افزودن تراکنش</h3>
+    <select id="type">
+      <option value="income">درآمد</option>
+      <option value="expense">هزینه</option>
+      <option value="transfer">انتقال</option>
+    </select>
+    <input type="text" id="desc" placeholder="توضیح (مثلاً فروش کالا)">
+    <input type="number" id="amount" placeholder="مبلغ">
+    <button class="primary" onclick="addTransaction()">ذخیره تراکنش</button>
+
+    <h4>لیست تراکنش‌ها</h4>
+    <div id="txList"></div>
+  </section>
+    <!-- بخش گزارش‌ها -->
+  <section id="reports" class="card hidden">
+    <h3>گزارش‌های گرافیکی</h3>
+    <div class="chart-container">
+      <canvas id="chart"></canvas>
     </div>
-    <ul id="txList" class="list"></ul>
+    <button class="primary" onclick="generateChart()">نمایش نمودار</button>
   </section>
 
-  <section id="view-accounts" class="view hidden">
-    <div class="row">
-      <button id="btnAccAdd" class="btn ok">+ حساب جدید</button>
-      <div class="spacer"></div>
-      <button id="btnAccTree" class="btn">درخت سرفصل/معین/تفصیلی</button>
-    </div>
-    <ul id="accList" class="list"></ul>
-    <div id="accTreePanel" class="panel hidden">
-      <h3>درخت حساب‌ها</h3>
-      <ul id="accTree" class="list"></ul>
-    </div>
+  <!-- بخش هوش صوتی -->
+  <section id="voice" class="card hidden">
+    <h3>دستیار صوتی</h3>
+    <p>برای افزودن تراکنش با صدا بگو:  
+    <b>«درآمد امروز پنج میلیون از فروش»</b></p>
+    <button id="startVoice" class="primary">🎤 شروع گوش دادن</button>
+    <p id="voiceText"></p>
   </section>
 
-  <section id="view-cheques" class="view hidden">
-    <div class="row">
-      <button id="btnAddCheque" class="btn ok">+ چک</button>
-      <select id="chKind" class="grow">
-        <option value="recv">اسناد دریافتی</option>
-        <option value="pay">اسناد پرداختنی</option>
-      </select>
-    </div>
-    <ul id="chList" class="list"></ul>
-  </section>
+  <!-- بخش تنظیمات -->
+  <section id="settings" class="card hidden">
+    <h3>تنظیمات</h3>
+    <label>انتخاب تم:</label>
+    <select id="themeSelect" onchange="changeTheme(this.value)">
+      <option value="parmis">پارمیس</option>
+      <option value="dark">تیره</option>
+      <option value="modern">مدرن</option>
+      <option value="light">روشن</option>
+    </select>
 
-  <section id="view-installments" class="view hidden">
-    <div class="grid g4">
-      <div><label>عنوان/وام</label><input id="insNote" placeholder="وام خودرو"></div>
-      <div><label>تعداد</label><input id="insCount" inputmode="numeric" value="12"></div>
-      <div><label>مبلغ هر قسط</label><input id="insPer" inputmode="numeric"></div>
-      <div><label>نوبت بعدی</label><input id="insNext" type="date"></div>
-    </div>
-    <div class="row" style="margin:8px 0">
-      <button id="btnAddInst" class="btn ok">+ افزودن قسط</button>
-    </div>
-    <ul id="insList" class="list"></ul>
-  </section>
+    <label>بکاپ داده‌ها</label>
+    <button onclick="backupData()">📦 تهیه نسخه پشتیبان</button>
 
-  <section id="view-building" class="view hidden">
-    <div class="row">
-      <select id="bSelect" class="grow"></select>
-      <button id="btnBAdd" class="btn ok">+ ساختمان/مجتمع</button>
-    </div>
-    <div class="grid g4">
-      <div class="col-span2"><label>واحد</label><input id="bUnitName" placeholder="واحد ۷"></div>
-      <div><label>سهم (%)</label><input id="bUnitShare" inputmode="numeric" value="0"></div>
-      <div><label>&nbsp;</label><button id="btnBAddUnit" class="btn">+ افزودن واحد</button></div>
-    </div>
-    <div class="panel">
-      <h3>واحدها</h3>
-      <ul id="bUnits" class="list"></ul>
-    </div>
-    <div class="panel">
-      <h3>تقسیم هزینه مشترک</h3>
-      <div class="grid g4">
-        <div class="col-span2"><label>شرح هزینه</label><input id="bCostNote" placeholder="نظافت/آبونمان/نگهبانی"></div>
-        <div><label>مبلغ کل</label><input id="bCostTotal" inputmode="numeric"></div>
-        <div><label>&nbsp;</label><button id="btnBSplit" class="btn">تقسیم بین واحدها</button></div>
-      </div>
-      <ul id="bSplitList" class="list"></ul>
-    </div>
-  </section>
+    <label>بازیابی داده‌ها</label>
+    <input type="file" id="restoreFile" onchange="restoreData(event)">
 
-  <section id="view-reports" class="view hidden">
-    <div class="row">
-      <button id="btnExportJSON" class="btn">Export JSON</button>
-      <button id="btnExportCSV" class="btn">Export CSV</button>
-      <button id="btnExportPDF" class="btn">Export PDF</button>
-    </div>
-    <div id="reportSummary" class="panel small">—</div>
-    <div class="card">
-      <h3>نمودار تفکیکی سرفصل‌ها</h3>
-      <canvas id="chartByAccount" height="150"></canvas>
-    </div>
-  </section>
-
-  <section id="view-tools" class="view hidden">
-    <div class="chips">
-      <button id="toolCalc" class="chip">🧮 ماشین‌حساب</button>
-      <button id="toolFx" class="chip">💱 مبدل ارز</button>
-      <button id="toolNote" class="chip">📝 دفترچه یادداشت</button>
-    </div>
-    <div id="toolsArea" class="panel small">ابزار را انتخاب کنید…</div>
-  </section>
-
-  <section id="view-settings" class="view hidden">
-    <div class="grid g4">
-      <div><label>تم</label>
-        <select id="themeSel">
-          <option value="">ساده</option>
-          <option value="theme-parmis">پارمیس</option>
-          <option value="theme-modern">مدرن</option>
-          <option value="theme-dark">تیره</option>
-        </select>
-      </div>
-      <div><label>حالت صوتی</label>
-        <select id="voiceMode"><option value="on">فعال</option><option value="off">غیرفعال</option></select>
-      </div>
-      <div class="col-span2"><label>هشدارها</label>
-        <div class="row">
-          <label><input type="checkbox" id="notifyDue"> اعلان موعد چک/قسط</label>
-        </div>
-      </div>
-      <div class="col-span2"><label>امنیت</label>
-        <div class="grid g2">
-          <div><input id="pinInput" placeholder="PIN 4-6 رقمی"></div>
-          <div><button id="btnSetPIN" class="btn">ثبت/تغییر PIN</button></div>
-        </div>
-      </div>
-      <div class="col-span2"><label>رمزگذاری پشتیبان‌ها (AES)</label>
-        <div class="grid g2">
-          <input id="encKey" placeholder="کلید محرمانه (به خاطر بسپار)">
-          <button id="btnSetEnc" class="btn">ثبت کلید</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>دوره مالی</h3>
-      <div class="row">
-        <button id="btnSetPeriod" class="btn">تنظیم دوره</button>
-        <button id="btnClosePeriod" class="btn danger">بستن دوره</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>پشتیبان‌گیری و همگام‌سازی</h3>
-      <div class="row small">
-        <label><input type="checkbox" id="bkDaily"> بکاپ روزانه 23:59</label>
-        <label><input type="checkbox" id="bkExit"> بکاپ هنگام خروج</label>
-        <label><input type="checkbox" id="bkMonthly"> بکاپ ماهانه (دو ماه آخر)</label>
-      </div>
-      <div class="grid g4">
-        <div class="col-span2"><input id="cfUrl" placeholder="Cloudflare Worker URL (اختیاری)"></div>
-        <div class="col-span2"><input id="cfSecret" placeholder="SECRET_KEY Base64 (اختیاری)"></div>
-      </div>
-      <div class="row" style="margin-top:6px">
-        <button id="btnBackupNow" class="btn ok">ذخیره بکاپ دستی</button>
-        <input id="fileRestore" type="file" class="hidden" accept=".json,.zip,application/json">
-        <button id="btnRestoreFile" class="btn">بازیابی از فایل</button>
-      </div>
-      <div id="bkLog" class="small"></div>
-    </div>
-
-    <div class="panel">
-      <h3>الگوهای پیامکی شناخته‌شده</h3>
-      <div id="smsPatternsBox" class="small">هنوز الگویی ذخیره نشده</div>
-    </div>
+    <h4>رمزگذاری (AES)</h4>
+    <input type="password" id="aesKey" placeholder="کلید رمزگذاری">
+    <button class="primary" onclick="encryptData()">رمزگذاری داده‌ها</button>
   </section>
 </main>
-<footer></footer>
+
 <script>
-/* ادامه کد در بخش ۲/۳ و ۳/۳ می‌آید */
-</script>
-/************ داده‌ها و ذخیره‌سازی ************/
-const DBKEY='VA_DB_v3';
-const DEF_PERIOD='1404';
-const $=q=>document.querySelector(q);
-const $$=q=>document.querySelectorAll(q);
-const fmt=n=>Number(n||0).toLocaleString('fa-IR');
-const todayKey=()=>new Date().toISOString().slice(0,10);
-const monthKey=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
-const cryptoRand = ()=> (crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));
+// ------------------------------
+// 🔹 مدیریت بخش‌ها
+// ------------------------------
+function showSection(id) {
+  document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
 
-let DB = loadDB();
+// ------------------------------
+// 🔹 داده‌ها و تراکنش‌ها
+// ------------------------------
+let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
 
-/* اسکیمای اولیه */
-function seedDB(){
-  return {
-    version:3,
-    settings:{
-      theme:'',
-      voice:'on',
-      period:DEF_PERIOD,
-      notify:true,
-      bkDaily:false, bkExit:true, bkMonthly:true,
-      cfUrl:'', cfSecret:'',
-      pin:'',
-      encKey:'', // base64 کلید مشتق شده
-      profile:'pro'
-    },
-    accounts:[
-      {id:'1', level:1, name:'درآمدها'},
-      {id:'2', level:1, name:'هزینه‌ها'},
-      {id:'3', level:1, name:'صندوق'},
-      {id:'4', level:1, name:'بانک‌ها'},
-      {id:'5', level:1, name:'اشخاص'},
-      {id:'3.1', level:2, parent:'3', name:'صندوق دستی'},
-      {id:'4.1', level:2, parent:'4', name:'بانک سامان'},
-      {id:'2.1', level:2, parent:'2', name:'خوراک'},
-      {id:'1.1', level:2, parent:'1', name:'فروش'}
-    ],
-    tx:[], // {id,date,amount,from,to,method,note}
-    cheques:[], // {id,kind:recv|pay, bank, number, amount, due, party, status:'inHand'|'paid'|'returned', period}
-    inst:[], // {id,note,per,count,paid,next,done,period}
-    building:{ items:[], units:[] }, // items: {id,name} , units:{id,bid,name,share}
-    periods:{ [DEF_PERIOD]:true },
-    backups:{daily:[], monthly:[], exit:[]},
-    smsPatterns:{} // {'SENDER|کلمه': {accTo:'2.1', sign:-1}}  sign: 1=income ,-1=expense
+function addTransaction() {
+  const type = document.getElementById('type').value;
+  const desc = document.getElementById('desc').value;
+  const amount = parseFloat(document.getElementById('amount').value);
+
+  if (!desc || !amount) return alert("توضیح و مبلغ را وارد کنید");
+
+  transactions.push({ type, desc, amount, date: new Date().toLocaleDateString('fa-IR') });
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+  updateDashboard();
+  renderList();
+  alert("✅ تراکنش ثبت شد");
+  document.getElementById('desc').value = '';
+  document.getElementById('amount').value = '';
+}
+
+function renderList() {
+  const list = document.getElementById('txList');
+  list.innerHTML = transactions.map(t =>
+    `<div class="card">
+      <b>${t.type === 'income' ? '💰 درآمد' : t.type === 'expense' ? '💸 هزینه' : '🔁 انتقال'}</b>
+      <p>${t.desc}</p>
+      <p>${t.amount.toLocaleString()} تومان</p>
+      <small>${t.date}</small>
+    </div>`
+  ).join('');
+}
+
+function updateDashboard() {
+  let income = transactions.filter(t => t.type === 'income').reduce((a,b)=>a+b.amount,0);
+  let expense = transactions.filter(t => t.type === 'expense').reduce((a,b)=>a+b.amount,0);
+  document.getElementById('totalIncome').textContent = income.toLocaleString();
+  document.getElementById('totalExpense').textContent = expense.toLocaleString();
+  document.getElementById('balance').textContent = (income - expense).toLocaleString();
+}
+updateDashboard();
+renderList();
+
+// ------------------------------
+// 📊 گزارش‌ها
+// ------------------------------
+function generateChart() {
+  const ctx = document.getElementById('chart');
+  const income = transactions.filter(t => t.type === 'income').reduce((a,b)=>a+b.amount,0);
+  const expense = transactions.filter(t => t.type === 'expense').reduce((a,b)=>a+b.amount,0);
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['درآمد', 'هزینه'],
+      datasets: [{
+        data: [income, expense],
+        borderWidth: 1
+      }]
+    }
+  });
+}
+
+// ------------------------------
+// 🎤 هوش صوتی (SpeechRecognition)
+// ------------------------------
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+  const recognizer = new SpeechRecognition();
+  recognizer.lang = 'fa-IR';
+  recognizer.continuous = false;
+
+  document.getElementById('startVoice').onclick = () => {
+    recognizer.start();
+    document.getElementById('voiceText').textContent = "در حال گوش دادن...";
+  };
+
+  recognizer.onresult = (event) => {
+    const text = event.results[0][0].transcript;
+    document.getElementById('voiceText').textContent = text;
+    parseVoiceCommand(text);
   };
 }
 
-/* رمزگذاری AES اختیاری برای ذخیره محلی و بکاپ */
-async function deriveKey(pass){
-  const enc = new TextEncoder().encode(pass);
-  const base = await crypto.subtle.importKey('raw', enc, 'PBKDF2',false, ['deriveKey']);
-  return crypto.subtle.exportKey('raw', await crypto.subtle.deriveKey(
-    {name:'PBKDF2', salt:new TextEncoder().encode('va_salt'), iterations:100000, hash:'SHA-256'},
-    base,{name:'AES-GCM', length:256},true,['encrypt','decrypt']
-  )).then(b=>btoa(String.fromCharCode(...new Uint8Array(b))));
+function parseVoiceCommand(text) {
+  if (text.includes('درآمد')) {
+    let amount = extractNumber(text);
+    transactions.push({type: 'income', desc: 'درآمد صوتی', amount});
+  } else if (text.includes('هزینه')) {
+    let amount = extractNumber(text);
+    transactions.push({type: 'expense', desc: 'هزینه صوتی', amount});
+  }
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+  updateDashboard();
+  renderList();
 }
-async function aesEncrypt(obj, b64Key){
-  if(!b64Key) return {plain:true, data:obj};
-  const keyRaw = Uint8Array.from(atob(b64Key),c=>c.charCodeAt(0));
-  const key = await crypto.subtle.importKey('raw', keyRaw,'AES-GCM',false,['encrypt']);
+
+function extractNumber(text) {
+  const match = text.match(/\d+/g);
+  return match ? parseInt(match.join('')) : 0;
+}
+  // ------------------------------
+// 🔒 رمزگذاری داده‌ها (AES)
+// ------------------------------
+async function encryptData() {
+  const keyText = document.getElementById('aesKey').value;
+  if (!keyText) return alert('کلید رمزگذاری را وارد کنید');
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(keyText), 'AES-GCM', false, ['encrypt']
+  );
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({name:'AES-GCM',iv}, key, new TextEncoder().encode(JSON.stringify(obj)));
-  return {plain:false, iv:Array.from(iv), blob:btoa(String.fromCharCode(...new Uint8Array(ct)))};
-}
-async function aesDecrypt(pack, b64Key){
-  if(pack.plain) return pack.data;
-  if(!b64Key) throw 'no key';
-  const keyRaw = Uint8Array.from(atob(b64Key),c=>c.charCodeAt(0));
-  const key = await crypto.subtle.importKey('raw', keyRaw,'AES-GCM',false,['decrypt']);
-  const iv = new Uint8Array(pack.iv);
-  const ct = Uint8Array.from(atob(pack.blob),c=>c.charCodeAt(0));
-  const pt = await crypto.subtle.decrypt({name:'AES-GCM',iv}, key, ct);
-  return JSON.parse(new TextDecoder().decode(pt));
+  const data = JSON.stringify(transactions);
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv }, key, enc.encode(data)
+  );
+  const blob = new Blob([iv, new Uint8Array(encrypted)], { type: 'application/octet-stream' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'backup_encrypted.dat';
+  link.click();
+  alert('✅ داده‌ها رمزگذاری و دانلود شدند.');
 }
 
-/* بارگذاری/ذخیره */
-function loadDB(){
-  try{
-    const raw = localStorage.getItem(DBKEY);
-    if(!raw) return seedDB();
-    const pack = JSON.parse(raw);
-    if(pack && (pack.plain!==undefined || pack.blob)) {
-      // نسخه رمزگذاری‌شده
-      return pack; // فعلاً بدون کلید – بعد از وارد کردن کلید، دیکریپت می‌شود.
-    }
-    return JSON.parse(raw);
-  }catch(e){ console.error(e); return seedDB(); }
-}
-async function getDB(){
-  // اگر رمزگذاری فعال است و DB به شکل pack ذخیره شده
-  if(DB && DB.plain===false || DB.blob){
-    try{
-      const dec = await aesDecrypt(DB, (DB.settings?DB.settings.encKey:localStorage.getItem('VA_encKey')) || '');
-      DB = dec;
-      return DB;
-    }catch(e){
-      alert('برای خواندن داده‌ها، ابتدا از تنظیمات «کلید رمزگذاری» را وارد کنید.');
-      throw e;
-    }
-  }
-  return DB;
-}
-function savePlain(obj){ localStorage.setItem(DBKEY, JSON.stringify(obj)); }
-async function saveDB(){
-  // اگر encKey تعریف شده، به صورت رمز ذخیره کن
-  const encKey = DB.settings.encKey || localStorage.getItem('VA_encKey') || '';
-  const pack = await aesEncrypt(DB, encKey);
-  localStorage.setItem(DBKEY, JSON.stringify(pack));
+// ------------------------------
+// ☁️ بکاپ و بازیابی داده‌ها
+// ------------------------------
+function backupData() {
+  const blob = new Blob([JSON.stringify(transactions, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'backup_miaai.json';
+  link.click();
+  alert('📦 نسخه پشتیبان آماده است.');
 }
 
-/************ ابزارهای عمومی ************/
-function setTheme(t){ document.body.classList.remove('theme-parmis','theme-modern','theme-dark'); if(t) document.body.classList.add(t); DB.settings.theme=t; saveDB(); }
-function setVoiceMode(m){ DB.settings.voice=m; saveDB(); }
-function setProfile(p){ DB.settings.profile=p; $('#profileSel').value=p; saveDB(); renderAll(); }
-function ensureAccountOptions(){
-  const fromSel=$('#txFrom'), toSel=$('#txTo');
-  fromSel.innerHTML=''; toSel.innerHTML='';
-  DB.accounts.forEach(a=>{
-    const o1=document.createElement('option'); o1.value=a.id; o1.textContent=`${a.id} — ${a.name}`; fromSel.appendChild(o1);
-    const o2=document.createElement('option'); o2.value=a.id; o2.textContent=`${a.id} — ${a.name}`; toSel.appendChild(o2);
-  });
-  // پیش‌فرض
-  fromSel.value='3.1'; toSel.value='2.1';
-}
-function addTx({amount,from,to,method,note,sign}){
-  const id=cryptoRand();
-  DB.tx.push({id,date:new Date().toISOString(),amount:sign>0?Math.abs(+amount):-Math.abs(+amount),from,to,method,note});
-}
-function removeTx(id){ DB.tx=DB.tx.filter(t=>t.id!==id); }
-
-/************ بکاپ ************/
-function logBk(msg){ const el=$('#bkLog'); el.textContent='• '+msg; setTimeout(()=>el.textContent='',4000); }
-function makePack(){ return {date:new Date().toISOString(), data:DB}; }
-async function saveBackupLocal(kind){
-  const pack = makePack();
-  // به صورت فایل دانلود (iCloud/Files کاربر ذخیره می‌کند)
-  const blob = new Blob([JSON.stringify(pack)], {type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  const name = kind==='monthly' ? `VA_Backup_Monthly_${monthKey()}` :
-               kind==='exit' ? `VA_Backup_Exit_${todayKey()}` :
-               `VA_Backup_Daily_${todayKey()}`;
-  a.download = name+'.json'; a.click();
-  DB.backups[kind] = DB.backups[kind]||[];
-  DB.backups[kind].push({name, ts:Date.now()});
-  // نگهداری: روزانه فقط ۷ تا، ماهانه فقط ۲ تا
-  if(kind==='daily' && DB.backups.daily.length>7) DB.backups.daily.splice(0, DB.backups.daily.length-7);
-  if(kind==='monthly' && DB.backups.monthly.length>2) DB.backups.monthly.splice(0, DB.backups.monthly.length-2);
-  await saveDB(); logBk('Backup saved: '+name);
-}
-async function sendBackupToCloudflare(pack){
-  const url = $('#cfUrl').value.trim() || DB.settings.cfUrl || '';
-  const secret = $('#cfSecret').value.trim() || DB.settings.cfSecret || '';
-  if(!url) return {ok:false, error:'no_url'};
-  try{
-    const res = await fetch(url+'/backup',{method:'POST',headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId:'me', period:DB.settings.period, dataJson:pack})});
-    const j = await res.json(); return j;
-  }catch(e){ return {ok:false, error:String(e)}; }
-}
-function scheduleBackups(){
-  setInterval(async ()=>{
-    const d=new Date(); const hh=d.getHours(), mm=d.getMinutes(), day=d.getDate();
-    if(DB.settings.bkDaily && hh===23 && mm===59) await saveBackupLocal('daily');
-    if(DB.settings.bkMonthly && day===1 && hh===0 && mm===0) await saveBackupLocal('monthly');
-  }, 60000);
-  document.addEventListener('visibilitychange', async ()=>{
-    if(document.visibilityState==='hidden' && DB.settings.bkExit) await saveBackupLocal('exit');
-  });
+function restoreData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    transactions = JSON.parse(e.target.result);
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+    updateDashboard();
+    renderList();
+    alert('✅ داده‌ها با موفقیت بازیابی شدند.');
+  };
+  reader.readAsText(file);
 }
 
-/************ لاگین PIN (ساده) ************/
-function askPINIfSet(){
-  const pin=DB.settings.pin||'';
-  if(!pin) return true;
-  let t=prompt('PIN را وارد کنید:');
-  if(t===pin) return true;
-  alert('نادرست'); return askPINIfSet();
-}
-
-/************ مقداردهی اولیه ************/
-async function init(){
-  // اگر DB رمزدار در localStorage بود، ابتدا کلید را از تنظیمات/لوکال بخوانیم:
-  if(DB && DB.plain===false) {
-    const k = localStorage.getItem('VA_encKey') || '';
-    if(!k){ alert('کلید رمزگذاری را در تنظیمات وارد کنید تا داده‌ها بازخوانی شود.'); }
-    else { DB = await aesDecrypt(DB, k); }
-  }
-  if(!DB || !DB.settings) DB = seedDB();
-  setTheme(DB.settings.theme||'');
-  $('#voiceMode').value=DB.settings.voice||'on';
-  $('#themeSel').value=DB.settings.theme||'';
-  $('#profileSel').value=DB.settings.profile||'pro';
-  $('#periodLabel').textContent='دوره '+(DB.settings.period||DEF_PERIOD);
-  ensureAccountOptions();
-  renderAll();
-  scheduleBackups();
-  if(!askPINIfSet()) return;
-}
-document.addEventListener('DOMContentLoaded', init);
-  /************ رندر داشبورد و لیست‌ها ************/
-function renderDash(){
-  const today = new Date().toISOString().slice(0,10);
-  const incToday = DB.tx.filter(t=>t.date.slice(0,10)===today && t.amount>0).reduce((s,t)=>s+t.amount,0);
-  const expToday = DB.tx.filter(t=>t.date.slice(0,10)===today && t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
-  const net = DB.tx.reduce((s,t)=>s+t.amount,0);
-  $('#sumIncToday').textContent=fmt(incToday);
-  $('#sumExpToday').textContent=fmt(expToday);
-  $('#sumNet').textContent=fmt(net);
-  // recent
-  const UL=$('#recentList'); UL.innerHTML='';
-  DB.tx.slice(-10).reverse().forEach(t=>{
-    const li=document.createElement('li');
-    li.innerHTML=`<span class="small">${t.note||''}</span><strong>${fmt(t.amount)}</strong>`;
-    UL.appendChild(li);
-  });
-  drawCharts();
-}
-function renderTx(){
-  const q = ($('#txSearch').value||'').trim();
-  const f = $('#txFilter').value;
-  const UL=$('#txList'); UL.innerHTML='';
-  DB.tx.slice().reverse().filter(t=>{
-    if(f==='inc' && t.amount<=0) return false;
-    if(f==='exp' && t.amount>=0) return false;
-    if(f==='tr'  && !(t.from&&t.to&&t.amount===0)){} // (در این نسخه انتقال دو ثبت دارد)
-    if(!q) return true;
-    return (t.note||'').includes(q);
-  }).forEach(t=>{
-    const li=document.createElement('li');
-    const typ = t.amount>0?'ok':(t.amount<0?'danger':'');
-    li.innerHTML=`<span class="small">${new Date(t.date).toLocaleDateString('fa-IR')} - ${t.note||''}</span>
-                  <div><strong class="${typ}">${fmt(t.amount)}</strong> <button data-del="${t.id}" class="btn small">حذف</button></div>`;
-    UL.appendChild(li);
-  });
-  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{removeTx(b.dataset.del); saveDB(); renderAll();});
-}
-function buildTreeMap(){
-  const map={};
-  DB.accounts.forEach(a=>{
-    if(a.parent){
-      (map[a.parent]=map[a.parent]||{id:a.parent, children:[]});
-      map[a.parent].children.push(a);
+// ------------------------------
+// 🔔 اعلان‌ها (Notifications)
+// ------------------------------
+if ('Notification' in window) {
+  Notification.requestPermission().then(p => {
+    if (p === 'granted') {
+      scheduleReminders();
     }
   });
-  return map;
 }
-function renderAccounts(){
-  ensureAccountOptions();
-  const UL=$('#accList'); UL.innerHTML='';
-  DB.accounts.forEach(a=>{
-    const li=document.createElement('li');
-    li.innerHTML=`<div>${a.level} • ${a.id} — ${a.name}</div>
-      <div class="row">
-        <button class="btn small" data-edit="${a.id}">ویرایش</button>
-        <button class="btn small danger" data-del="${a.id}">حذف</button>
-      </div>`;
-    UL.appendChild(li);
-  });
-  UL.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
-    const a=DB.accounts.find(x=>x.id===b.dataset.edit);
-    const name=prompt('نام حساب:', a.name)||a.name;
-    a.name=name; saveDB(); renderAccounts();
-  });
-  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
-    if(!confirm('حذف حساب؟'))return;
-    DB.accounts=DB.accounts.filter(x=>x.id!==b.dataset.del); saveDB(); renderAccounts();
-  });
-  // درخت
-  const tree=$('#accTree'); tree.innerHTML='';
-  DB.accounts.filter(a=>!a.parent).forEach(root=>{
-    const li=document.createElement('li');
-    li.innerHTML=`<div>${root.name}</div>`;
-    const sub=document.createElement('ul'); sub.className='list';
-    DB.accounts.filter(a=>a.parent===root.id).forEach(ch=>{
-      const li2=document.createElement('li'); li2.textContent=ch.name; sub.appendChild(li2);
+
+function scheduleReminders() {
+  setTimeout(() => {
+    new Notification('🔔 یادآوری Mia AI', {
+      body: 'سررسید اقساط یا چک‌های خود را بررسی کنید 💳',
+      icon: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
     });
-    li.appendChild(sub); tree.appendChild(li);
-  });
-}
-function renderCheques(){
-  const UL=$('#chList'); UL.innerHTML='';
-  const kind=$('#chKind').value;
-  DB.cheques.filter(c=>c.kind===kind).slice().reverse().forEach(c=>{
-    const li=document.createElement('li');
-    const status = {inHand:'نزد صندوق', paid:'خرج/وصول شده', returned:'برگشتی'}[c.status]||c.status;
-    li.innerHTML=`<div class="small">${c.bank} • ${c.number} • سررسید: ${c.due} • ${c.party}</div>
-      <div class="row"><strong>${fmt(c.amount)}</strong>
-      <select data-st="${c.id}">
-        <option value="inHand" ${c.status==='inHand'?'selected':''}>نزد صندوق</option>
-        <option value="paid" ${c.status==='paid'?'selected':''}>خرج/وصول</option>
-        <option value="returned" ${c.status==='returned'?'selected':''}>برگشتی</option>
-      </select>
-      <button class="btn small danger" data-del="${c.id}">حذف</button></div>`;
-    UL.appendChild(li);
-  });
-  UL.querySelectorAll('[data-st]').forEach(s=>s.onchange=()=>{const c=DB.cheques.find(x=>x.id===s.dataset.st); c.status=s.value; saveDB();});
-  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{DB.cheques=DB.cheques.filter(x=>x.id!==b.dataset.del); saveDB(); renderCheques();});
-}
-function renderInst(){
-  const UL=$('#insList'); UL.innerHTML='';
-  DB.inst.filter(i=>i.period===DB.settings.period).slice().reverse().forEach(i=>{
-    const li=document.createElement('li');
-    li.innerHTML=`<div class="small">${i.note} | ${i.paid}/${i.count} | بعدی: ${i.next||'-'}</div>
-      <div class="row"><strong>${fmt(i.per)}</strong>
-      <button class="btn small ok" data-pay="${i.id}">پرداخت</button>
-      <button class="btn small danger" data-del="${i.id}">حذف</button></div>`;
-    UL.appendChild(li);
-  });
-  UL.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{
-    const i=DB.inst.find(x=>x.id===b.dataset.pay); if(!i) return;
-    // پرداخت یک قسط:
-    addTx({amount:i.per, from:'3.1', to:'2.1', method:'inst', note:'قسط: '+i.note, sign:-1});
-    i.paid=(i.paid||0)+1;
-    const d=i.next?new Date(i.next):new Date(); d.setMonth(d.getMonth()+1); i.next=d.toISOString().slice(0,10);
-    if(i.paid>=i.count) i.done=true;
-    saveDB(); renderInst(); renderDash(); renderTx();
-  });
-  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{DB.inst=DB.inst.filter(x=>x.id!==b.dataset.del); saveDB(); renderInst();});
-}
-function renderBuilding(){
-  const sel=$('#bSelect'); sel.innerHTML='';
-  DB.building.items.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=b.name; sel.appendChild(o);});
-  if(DB.building.items.length===0){ DB.building.items.push({id:'b1',name:'ساختمان ۱'}); }
-  if(!sel.value && DB.building.items[0]) sel.value=DB.building.items[0].id;
-  const bid=sel.value;
-  const UL=$('#bUnits'); UL.innerHTML='';
-  DB.building.units.filter(u=>u.bid===bid).forEach(u=>{
-    const li=document.createElement('li');
-    li.innerHTML=`<div>${u.name} • سهم ${u.share||0}%</div>
-      <div class="row"><button class="btn small" data-ed="${u.id}">ویرایش</button>
-      <button class="btn small danger" data-del="${u.id}">حذف</button></div>`;
-    UL.appendChild(li);
-  });
-  UL.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{
-    const u=DB.building.units.find(x=>x.id===b.dataset.ed);
-    u.name=prompt('نام واحد',u.name)||u.name; u.share=+prompt('سهم %',u.share)||u.share; saveDB(); renderBuilding();
-  });
-  UL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{DB.building.units=DB.building.units.filter(x=>x.id!==b.dataset.del); saveDB(); renderBuilding();});
-}
-function drawCharts(){
-  // ۳ ماه اخیر
-  const months=[], inc=[], exp=[];
-  for(let i=2;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); months.push(`${d.getFullYear()}/${d.getMonth()+1}`); inc.push(0); exp.push(0); }
-  DB.tx.forEach(t=>{
-    const d=new Date(t.date); const label=`${d.getFullYear()}/${d.getMonth()+1}`; const idx=months.indexOf(label);
-    if(idx>=0){ if(t.amount>0) inc[idx]+=t.amount; else exp[idx]+=Math.abs(t.amount); }
-  });
-  const c1=$('#chartIE').getContext('2d');
-  if(window._cIE) window._cIE.destroy();
-  window._cIE=new Chart(c1,{type:'bar',data:{labels:months,datasets:[{label:'درآمد',backgroundColor:'#10b981',data:inc},{label:'هزینه',backgroundColor:'#ef4444',data:exp}]},options:{responsive:true,maintainAspectRatio:false}});
-  // سهم حساب‌ها
-  const accMap={};
-  DB.accounts.forEach(a=>accMap[a.id]=0);
-  DB.tx.forEach(t=>{ if(t.amount>0) accMap[t.to]+=t.amount; else accMap[t.from]+=Math.abs(t.amount); });
-  const labels=Object.keys(accMap).map(k=> (DB.accounts.find(a=>a.id===k)||{}).name||k);
-  const values=Object.values(accMap);
-  const c2=$('#chartAccounts').getContext('2d');
-  if(window._cAcc) window._cAcc.destroy();
-  window._cAcc=new Chart(c2,{type:'pie',data:{labels, datasets:[{data:values}]} , options:{responsive:true,maintainAspectRatio:false}});
+  }, 10000); // نمایش اعلان پس از ۱۰ ثانیه به عنوان نمونه
 }
 
-/************ هوش صوتی + تبدیل گفتار به متن ************/
-function speak(txt){ try{ const u=new SpeechSynthesisUtterance(txt); u.lang='fa-IR'; speechSynthesis.speak(u);}catch{} }
-function listenNoteOnce(targetInput){
-  if($('#voiceMode').value==='off') return;
-  try{
-    const R=window.SpeechRecognition||window.webkitSpeechRecognition; if(!R) return alert('SpeechRecognition در این مرورگر نیست');
-    const r=new R(); r.lang='fa-IR'; r.interimResults=false; r.maxAlternatives=1; r.onresult=e=>{ targetInput.value=e.results[0][0].transcript; }; r.start();
-  }catch(e){ alert('خطا در میکروفون'); }
+// ------------------------------
+// 🎨 تغییر تم‌ها
+// ------------------------------
+function changeTheme(theme) {
+  document.body.className = theme === 'light' ? '' : theme;
+  localStorage.setItem('theme', theme);
 }
-$('#btnVoiceExplain').onclick=()=>listenNoteOnce($('#txNote'));
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) changeTheme(savedTheme);
 
-/************ پیامک بانکی — افزودن و یادگیری ************/
-function parseSms(text){
-  // ساده: مبلغ + نشانه واریز/برداشت + کلیدواژه
-  const num = (text.match(/([\d,]+)\s*ریال|([\d,]+)\s*تومان/g)||[]).pop()||'0';
-  let amount = +num.replace(/[^\d]/g,'');
-  if(/تومان/.test(num)) amount*=10; // تقریبی
-  let sign = /واریز|وصول|دریافت/.test(text)? +1 : -1;
-  // یادگیری
-  let accTo='2.1';
-  for(const k in DB.smsPatterns){
-    if(text.includes(k.split('|')[1])){ const P=DB.smsPatterns[k]; accTo=P.accTo; sign=P.sign; break; }
-  }
-  return {amount, sign, accTo, raw:text};
-}
-function importFromSMS(){
-  const raw = prompt('متن پیامک بانکی را اینجا بچسبان:','');
-  if(!raw) return;
-  const p=parseSms(raw);
-  const ok = confirm(`تشخیص: مبلغ ${fmt(p.amount)} | نوع: ${p.sign>0?'دریافت':'پرداخت'} | سرفصل: ${p.accTo}\nتأیید؟`);
-  if(!ok) return;
-  if(p.sign>0) addTx({amount:p.amount, from:'5', to:p.accTo, method:'cash', note:'از پیامک: دریافت', sign:+1});
-  else addTx({amount:p.amount, from:p.accTo, to:'3.1', method:'cash', note:'از پیامک: پرداخت', sign:-1});
-  // یادگیری کلیدواژه
-  const kw = prompt('یک کلمه‌ی کلیدی از متن برای یادگیری وارد کن (مثلاً "شارژ ایرانسل") یا خالی بگذار:','')||'';
-  if(kw){
-    DB.smsPatterns['BANK|'+kw]={accTo:p.accTo, sign:p.sign};
-  }
-  saveDB(); renderAll();
-}
-$('#btnImportSMS').onclick=importFromSMS;
+// ------------------------------
+// 🕓 بکاپ خودکار زمان خروج
+// ------------------------------
+window.addEventListener('beforeunload', () => {
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+});
 
-/************ اعلان‌ها (محلی) ************/
-async function notify(txt){
-  try{
-    if(Notification && (await Notification.requestPermission())==='granted'){
-      new Notification('حسابدار', {body:txt});
-    }else alert(txt);
-  }catch{ alert(txt); }
-}
-function scanDue(){
-  // چک/قسط که تا ۳ روز آینده سررسید دارند
-  const now=new Date(); const soon=new Date(); soon.setDate(now.getDate()+3);
-  const dueCheques = DB.cheques.filter(c=>c.status==='inHand' && new Date(c.due)<=soon);
-  const dueInst = DB.inst.filter(i=>!i.done && new Date(i.next)<=soon);
-  if(dueCheques.length) notify(`موعد چک: ${dueCheques.length} مورد نزدیک است`);
-  if(dueInst.length) notify(`موعد قسط: ${dueInst.length} مورد نزدیک است`);
-}
-setInterval(scanDue, 60*60*1000);
-
-/************ رویدادهای UI ************/
-function showTab(name){ $$('.view').forEach(v=>v.classList.add('hidden')); $('#view-'+name).classList.remove('hidden'); $$('.navlink').forEach(n=>n.classList.remove('active')); document.querySelector(`.navlink[data-tab="${name}"]`).classList.add('active'); }
-$('#btnMenu').onclick=()=>$('#drawer').classList.add('show');
-$('#btnCloseDrawer').onclick=()=>$('#drawer').classList.remove('show');
-$$('.navlink').forEach(n=>n.onclick=()=>{showTab(n.dataset.tab); $('#drawer').classList.remove('show');});
-
-$('#btnAddIncome').onclick=()=>{ $('#txTo').value='1.1'; $('#txMethod').value='cash'; $('#txAmount').focus(); };
-$('#btnAddExpense').onclick=()=>{ $('#txFrom').value='2.1'; $('#txMethod').value='cash'; $('#txAmount').focus(); };
-$('#btnTransfer').onclick=()=>{ $('#txMethod').value='cash'; $('#txAmount').focus(); };
-
-$('#btnSaveIncome').onclick=async ()=>{
-  const amount=+$('#txAmount').value||0; if(!amount) return;
-  addTx({amount, from:$('#txFrom').value, to:$('#txTo').value, method:$('#txMethod').value, note:$('#txNote').value, sign:+1});
-  await saveDB(); renderAll(); speak('دریافت ثبت شد');
-};
-$('#btnSaveExpense').onclick=async ()=>{
-  const amount=+$('#txAmount').value||0; if(!amount) return;
-  addTx({amount, from:$('#txFrom').value, to:$('#txTo').value, method:$('#txMethod').value, note:$('#txNote').value, sign:-1});
-  await saveDB(); renderAll(); speak('پرداخت ثبت شد');
-};
-$('#btnSaveTransfer').onclick=async ()=>{
-  const amount=+$('#txAmount').value||0; if(!amount) return;
-  // انتقال = یک خروجی و یک ورودی
-  addTx({amount, from:$('#txFrom').value, to:'', method:'transfer', note:'انتقال: '+$('#txNote').value, sign:-1});
-  addTx({amount, from:'', to:$('#txTo').value, method:'transfer', note:'انتقال: '+$('#txNote').value, sign:+1});
-  await saveDB(); renderAll(); speak('انتقال انجام شد');
-};
-
-$('#txSearch').oninput=renderTx; $('#txFilter').onchange=renderTx;
-
-$('#btnAccAdd').onclick=()=>{ const id=prompt('کد حساب (مثل 2.3 یا 6):'); if(!id) return; const name=prompt('نام حساب:'); const level=(id.split('.').length); const parent = id.includes('.')? id.split('.').slice(0,-1).join('.') : ''; DB.accounts.push({id,name,level,parent}); saveDB(); renderAccounts(); };
-$('#btnAccTree').onclick=()=>$('#accTreePanel').classList.toggle('hidden');
-
-$('#btnAddCheque').onclick=()=>{
-  const c={id:cryptoRand(),kind:$('#chKind').value, bank:prompt('بانک؟','ملی')||'—', number:prompt('شماره چک؟','')||'', amount:+prompt('مبلغ؟','0')||0, due:prompt('تاریخ سررسید؟','1404-12-29')||'', party:prompt('دریافت از/پرداخت به؟','')||'', status:'inHand', period:DB.settings.period};
-  DB.cheques.push(c); saveDB(); renderCheques();
-};
-
-$('#btnAddInst').onclick=()=>{
-  const i={id:cryptoRand(), note:$('#insNote').value, per:+$('#insPer').value||0, count:+$('#insCount').value||0, paid:0, next:$('#insNext').value||todayKey(), done:false, period:DB.settings.period};
-  if(!i.per||!i.count) return alert('مبلغ/تعداد نامعتبر');
-  DB.inst.push(i); saveDB(); renderInst();
-};
-
-$('#bSelect').onchange=renderBuilding;
-$('#btnBAdd').onclick=()=>{ const name=prompt('نام ساختمان/مجتمع؟','ساختمان جدید'); if(!name) return; DB.building.items.push({id:cryptoRand(),name}); saveDB(); renderBuilding(); };
-$('#btnBAddUnit').onclick=()=>{ const bid=$('#bSelect').value; const name=$('#bUnitName').value.trim(); const share=+$('#bUnitShare').value||0; if(!name) return; DB.building.units.push({id:cryptoRand(),bid,name,share}); saveDB(); renderBuilding(); };
-$('#btnBSplit').onclick=()=>{
-  const bid=$('#bSelect').value; const units=DB.building.units.filter(u=>u.bid===bid);
-  const tot=+$('#bCostTotal').value||0; const note=$('#bCostNote').value||'هزینه مشترک';
-  const sumShare = units.reduce((s,u)=>s+(+u.share||0),0)||100;
-  const UL=$('#bSplitList'); UL.innerHTML='';
-  units.forEach(u=>{
-    const part = Math.round(tot*(u.share||0)/sumShare);
-    const li=document.createElement('li'); li.innerHTML=`<div>${u.name}</div><strong>${fmt(part)}</strong>`; UL.appendChild(li);
-    // ثبت پرداخت هر واحد (در حالت Lite فقط نمایش؛ در حالت Pro ثبت تراکنش)
-    if(DB.settings.profile==='pro'){
-      addTx({amount:part, from:'3.1', to:'2.1', method:'cash', note:`${note} - ${u.name}`, sign:-1});
-    }
-  });
-  saveDB(); renderAll();
-};
-
-/************ تنظیمات ************/
-$('#themeSel').onchange=()=>setTheme($('#themeSel').value);
-$('#voiceMode').onchange=()=>{setVoiceMode($('#voiceMode').value); saveDB();}
-$('#profileSel').onchange=()=>setProfile($('#profileSel').value);
-$('#notifyDue').checked=true;
-$('#btnSetPeriod').onclick=()=>{ const p=prompt('عدد دوره مالی (مثلاً 1404):', DB.settings.period)||DB.settings.period; DB.settings.period=p; DB.periods[p]=true; saveDB(); $('#periodLabel').textContent='دوره '+p; };
-$('#btnClosePeriod').onclick=()=>{ if(confirm('بستن دوره و شروع جدید؟')){ const np=String((+DB.settings.period||1404)+1); DB.settings.period=np; DB.periods[np]=true; saveDB(); $('#periodLabel').textContent='دوره '+np; } };
-$('#btnSetPIN').onclick=()=>{ DB.settings.pin=$('#pinInput').value||''; saveDB(); alert('PIN ثبت شد'); };
-$('#btnSetEnc').onclick=async ()=>{ const pass=$('#encKey').value||''; if(!pass){ DB.settings.encKey=''; localStorage.removeItem('VA_encKey'); await saveDB(); return alert('رمزگذاری غیرفعال شد'); } const k=await deriveKey(pass); DB.settings.encKey=k; localStorage.setItem('VA_encKey',k); await saveDB(); alert('کلید ثبت شد (پشتیبان‌ها رمز می‌شوند)'); };
-$('#bkDaily').onchange=()=>{ DB.settings.bkDaily=$('#bkDaily').checked; saveDB(); };
-$('#bkExit').onchange=()=>{ DB.settings.bkExit=$('#bkExit').checked; saveDB(); };
-$('#bkMonthly').onchange=()=>{ DB.settings.bkMonthly=$('#bkMonthly').checked; saveDB(); };
-$('#cfUrl').oninput=()=>{ DB.settings.cfUrl=$('#cfUrl').value.trim(); saveDB(); };
-$('#cfSecret').oninput=()=>{ DB.settings.cfSecret=$('#cfSecret').value.trim(); saveDB(); };
-$('#btnBackupNow').onclick=()=>saveBackupLocal('daily');
-$('#btnRestoreFile').onclick=()=>$('#fileRestore').click();
-$('#fileRestore').onchange=async e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const txt=await f.text(); const pack=JSON.parse(txt);
-  if(!pack.data) return alert('فایل نامعتبر');
-  if(!confirm('بازیابی و جایگزینی همه داده‌ها؟')) return;
-  DB=pack.data; await saveDB(); location.reload();
-};
-
-/************ ابزارها ************/
-$('#toolCalc').onclick=()=>{ const v=prompt('حساب کنید (مثلاً 2*3+5):',''); if(!v) return; try{$('#toolsArea').textContent='= '+Intl.NumberFormat('fa-IR').format(Function('return '+v)());}catch{$('#toolsArea').textContent='فرمول نامعتبر';}};
-$('#toolFx').onclick=()=>{ const r=+prompt('نرخ دلار (تومان):','0')||0; const a=+prompt('مبلغ دلار:','0')||0; $('#toolsArea').textContent=Intl.NumberFormat('fa-IR').format(r*a)+' تومان'; };
-$('#toolNote').onclick=()=>{ const t=prompt('یادداشت:',''); if(t) $('#toolsArea').textContent='یادداشت: '+t; };
-
-/************ گزارش‌ها ************/
-function renderReports(){
-  const income = DB.tx.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
-  const expense = DB.tx.filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
-  const net = income-expense;
-  $('#reportSummary').innerHTML = `
-    جمع درآمد: <strong>${fmt(income)}</strong> — 
-    جمع هزینه: <strong>${fmt(expense)}</strong> — 
-    خالص: <strong>${fmt(net)}</strong>`;
-  // نمودار سرفصل‌ها بر اساس مقصد/مبدأ
-  const accMap={};
-  DB.accounts.forEach(a=>accMap[a.id]=0);
-  DB.tx.forEach(t=>{ if(t.amount>0) accMap[t.to]+=t.amount; else accMap[t.from]+=Math.abs(t.amount); });
-  const labels=Object.keys(accMap).map(k=> (DB.accounts.find(a=>a.id===k)||{}).name||k);
-  const values=Object.values(accMap);
-  const ctx=$('#chartByAccount').getContext('2d');
-  if(window._cBA) window._cBA.destroy();
-  window._cBA=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'مبالغ',data:values, backgroundColor:'#0b9981'}]},options:{responsive:true,maintainAspectRatio:false}});
-}
-$('#btnExportJSON').onclick=()=>{ const blob=new Blob([JSON.stringify(DB)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='VA_DB.json'; a.click(); };
-$('#btnExportCSV').onclick=()=>{ const rows=[['date','amount','from','to','method','note']]; DB.tx.forEach(t=>rows.push([t.date,t.amount,t.from,t.to,t.method,(t.note||'').replace(/\n/g,' ')])); const csv=rows.map(r=>r.join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='VA_DB.csv'; a.click(); };
-$('#btnExportPDF').onclick=()=>{ window.print(); };
-
-/************ رندر کلی ************/
-function renderAll(){
-  renderDash(); renderTx(); renderAccounts(); renderCheques(); renderInst(); renderBuilding(); renderReports();
-  // نمایش الگوهای پیامکی
-  const box=$('#smsPatternsBox'); const keys=Object.keys(DB.smsPatterns); if(keys.length===0) box.textContent='هنوز الگویی ذخیره نشده'; else box.innerHTML=keys.map(k=>`<div>• ${k} => ${(DB.smsPatterns[k].sign>0?'دریافت':'پرداخت')} → ${DB.smsPatterns[k].accTo}</div>`).join('');
+// ------------------------------
+// 🧮 ماشین حساب داخلی (ساده)
+// ------------------------------
+function quickCalc(expression) {
+  try { return eval(expression); }
+  catch { return 'خطا'; }
 }
 
-/* دکمه‌های اصلی هدر */
-$('#btnBackup').onclick=()=>saveBackupLocal('daily');
-$('#btnVoice').onclick=()=>alert('حالت صوتی '+(DB.settings.voice==='on'?'فعال':'غیرفعال'));
-
-/* نمایش اولیه */
-showTab('dashboard');
+// ------------------------------
+// پایان
+// ------------------------------
 </script>
+
+<footer style="text-align:center;padding:1rem;font-size:0.8rem;color:gray;">
+  Mia AI © 2025 — نسخه فاز دوم
+</footer>
+
 </body>
 </html>
